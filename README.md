@@ -1,6 +1,7 @@
 # cliffhanger
 Datacentric natural programming language
-Currently under development
+
+*Currently under development*
 
 # Roadmap
 Cliffhanger applications consist of data and behavior definitions that are triggered on data changes. Each CH application operates on an abstract data tree.
