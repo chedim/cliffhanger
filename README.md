@@ -18,7 +18,7 @@ where `<trigger>` and `<alternative trigger>` are logical conditions that may re
 `<mutations>` and `<alternative mutations>` is a list of mutations that should be performed on the data tree every time the corresponding trigger evaluates to true.
 
 # Tree traversal
-Any identifier (that is, not a keyword or a literal) used in either trigger condition or a mutation instricts CH to traverse the data tree down from the current node to its child with that identifier. Identifiers can be separated either with "/" or " ", for example:
+Any identifier (that is, not a keyword or a literal) used in either trigger condition or a mutation instructs CH to traverse the data tree down from the current node to its child with that identifier. Identifiers can be separated either with "/" or " ", for example:
 
 ```system file /etc/cliffhanger/config```
 
@@ -44,7 +44,7 @@ and, or, not
 - is not under -- greater than or equals comparison
 
 Examples:
-  `when user name is guest`
+  `when user name is "guest"`
   `when user name length is under 5`
   `when system time is above 1619897256`
   `when attempts is not above 3`
