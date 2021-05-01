@@ -37,11 +37,11 @@ Trigger conditions use identifiers to observe mutations on some tree nodes. By d
 and, or, not
 
 # Comparison operators
-is -- equality comparison (in js: ==)
-under -- less than comparison (in js: <)
-above -- greater than comparison (in js: >)
-not above -- less than or equals comparison
-not under -- greater than or equals comparison
+- is -- equality comparison (in js: ==)
+- is under -- less than comparison (in js: <)
+- is above -- greater than comparison (in js: >)
+- is not above -- less than or equals comparison
+- is not under -- greater than or equals comparison
 
 Examples:
   `when user name is guest`
