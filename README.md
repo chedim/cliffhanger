@@ -45,10 +45,10 @@ and, or, not
 
 Examples:
   `when user name is guest`
-  `when user name length under 5`
-  `when system time above 1619897256`
-  `when attempts not above 3`
-  `when years from user age not under 21`
+  `when user name length is under 5`
+  `when system time is above 1619897256`
+  `when attempts is not above 3`
+  `when years from user age is not under 21`
 
 # ownership operators
 with -- verifies that left operand contains nodes from the right
