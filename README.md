@@ -14,8 +14,8 @@ when <trigger>:
   <alternative mutations>]
 ```
 
-where <trigger> and <alternative trigger> are logical conditions that may reference elements of the data tree and are re-evaluated every time  any of the referenced values are redefined.
-<mutations> and <alternative mutations> is a list of mutations that should be performed on the data tree every time the corresponding trigger evaluates to true.
+where `<trigger>` and `<alternative trigger>` are logical conditions that may reference elements of the data tree and are re-evaluated every time  any of the referenced values are redefined.
+`<mutations>` and `<alternative mutations>` is a list of mutations that should be performed on the data tree every time the corresponding trigger evaluates to true.
 
 # Tree traversal
 Any identifier (that is, not a keyword or a literal) used in either trigger condition or a mutation instricts CH to traverse the data tree down from the current node to its child with that identifier. Identifiers can be separated either with "/" or " ", for example:
