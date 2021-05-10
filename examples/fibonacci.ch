@@ -2,8 +2,7 @@ when started:
   and argument 1 is a number:
     a new console line is a number from fibbonacci with argument 1
   or else:
-    error is "Please provide a number as the 1st argument"
-    system exit with 1
+    error of argument 1 is "Please provide a number as the 1st argument"
 
 when fibbonacci with a number:
  and the number is above 1:

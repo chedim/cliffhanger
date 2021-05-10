@@ -1,0 +1,3 @@
+CliffHangerFile <- WhenOrStatement *
+
+WhenOrStatement <- "when" Spacing TriggerCondition Spacing ":"
