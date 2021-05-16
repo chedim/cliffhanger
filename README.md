@@ -12,21 +12,88 @@ I called it microservice programming language because any part of cliffhanger ap
 I think that it is great for cloud because it will come with a built-in database (cliffdb, I hope to work on it in parallel), autoscaling and autobalancing of data tree nodes across a cluster. 
 Combining this all with a powerful http-compliant (REST) api that uses a URL graph addressing language that works better with http(s) caching layers than grapql will make the idea-to-prototype and prototype-to-production time for cliffhanger projects to be less than the same metric for other languages (that is, of course, after a stable version of CH).
 
-## Type system
-Cliffhanger has a unique type system that is based on these basic types:
-* A statement is analogous to the classic boolean type
-* A digit is a digit between 0 and 9
-* A character is a UTF-8 character
-* A reference is an object that refers to another object
-* A set is a group of elements that satisfy the set criteria and have same properties.
+## General Principles
 
-## Mutation events
-Every change in application data is treated by cliffhanger as a mutation event that propagates through application's reference tree. Cliffhanger applications operate only_ by definig handlers for such mutations which can mutate the data even further. 
+A cliffhanger application operates on application data graph by defining its mutation rules and external connections.
+The data graph consists of nodes and leafs. 
+Both nodes and leafs react to being changed by executing developer-defined statements that either check the validity of assigned to them data or define further recalculations that should be performed on the tree. 
+A change in the state of application's data graph is called a mutation. 
+Statements that should be executed after a mutation are called mutation rules.
+
+### State Machine
+Cliffhanger applications are executed using a state machine that applies mutations to application's data graph in the order defined by mutation queue.
+When started, cliffhanger state machine is initialized by adding initial mutation on application's root node that sets that node to the application graph that is defined by application's structure.
+The application may define some mutation rules that should be executed upon initial mutation.
+Some of such rules may result in additional mutation on the data graph, called cascading mutations and initial mutation is then referred as the parent reaction of these mutations.
+Cliffhanger state machine processes cascading mutations by adding them to the end of the mutation queue.
+When all defined by application mutation rules are processed, state machine marks initial mutation as applied.
+After a mutation is applied, state machine continues by processing the next queued mutation.
+If the queue is empty then mutation machine starts waiting for external mutation events that may be triggered by client applications.
+Cliffhanger state machine stops its execution either upon an error or after applications root node is void.
+
+### Cliffhanger application structure
+Cliffhanger uses directories to define application data nodes and files to define mutation rules and leafs.
+Mutation rules for a node are defined in `node.cl` file in the directory that corresponds to the node.
+Any other `*.cl` files inside a node directory define leafs  
+
+#### Node description files
+Node description files define mutation rules for a node of application's data graph. The path from application root directory to the node file defines the path of the node described by that file, for example to describe mutation rules for data that is written to the node "user name", node description file should be named "./user/name.cl"
+
+#### Leaf Types
+The name of a node description file
+
+Each leaf of application's data graph can hold information of one of the following types:
+- a flag can be either set or not
+- an integer can hold any integer value
+- a fraction can hold any fraction between and including 0 and 1
+- a glyph represents a UTF-16 character
+- a set represents a group of values indexed by an integer
+
+#### Client applications
+An application may connect another application and become its client by mapping a node of its data graph to the root node of the target application.
+In such a case the mapped application is started in its own state machine (or existing state machine is connected if the mapped application is already running).
+All mutations to the mapped graph made by the mapping application are marked as external and belonging to that application.
+External mutations trigger only internal and added by the mapping application mutation rules.
+Mutations that cascade from external mutation inherit that property from their parent mutation.
+Any mutation rules defined by the mapping application on the mapped application graph apply only to mutations that belong to that application or were marked as global by the included application.
+
+## Cliffnode syntax
+Mutation rules are defined using `when` statements, which are defined as:
+
+```
+WhenStatement <- "when" Spacing+ TriggerStatement Spacing+ ":" Spacing+ "\n" MutationBlock  
+```
+
+Example `node.cl` of the "chedim.com/examples/sum" application:
+```
+application chedim.com/examples/sum
+
+when node is not void:
+  node argument a must be a number
+  node argument b must be a number
+  node result is node argument a plus node argument b
+```
+
+In this example we created a simple cliffhanger application that describes a node that can be used in another application to calculate sum of two numbers like this:
+
+Example `node.cl` of the "chedim.com/examples/sum_client_" client application:
+```
+application chedim.com/examples/sum__client
+
+when node is not void:
+  node sum maps to sum.chedim.com and
+    node sum argument a is 2 and
+    node sum argument b is 3
+  node out maps to console.local
+
+when node sum result:
+  node out is node sum result
+  node is void
+```
+
 
 ### References
-Cliffhanger makes extensive use of references to address different objects. Before it can be used, a reference must be defined using the `<reference> is <reference>` construct, for example the reference to the current input character from the default stream can be defined like this:
-
-`value is 'd'`
+Cliffhanger makes extensive use of references to address nodes and leafs. Any word that is not 
 
 After this statement is executed, `value` becomes a reference to the value 'd'.
 
@@ -62,7 +129,7 @@ Anonymous set instance references are always prefixed with `the` article and alw
 For more details on standard references please refer to the documentation on standard reference tree.
 
 #### Void references
-References to non-existing nodes evaluate to void. A void reference inside of a triggered action is handled by setting `cliffhanger error` to an member of `void reference` set.
+References to non-existing nodes evaluate to void. A void reference inside of a triggered action is handled by setting `cliffhanger error` to a member of `void reference` set.
 
 #### Reference resolution
 References that target other references are transparently and recursively dereferenced when a value is requested from them unless they were explicitly checked to be a reference in the trigger condition:
@@ -112,31 +179,7 @@ The standard library for Cliffhanger should contain definitions for the followin
 * Parts of speech
 
 #### Assigning a value to a set
-A value can be assigned to a set by using `is a` operator construct, for example: `the input character is a digit`. After the example is executed the object referenced by `the input character` at the moment of execution becomes a member of the digit set.
-
-#### Defining a new set
-Defining a new set can be done using when-then construct, for example:
-```
-//   |-> trigger statement
-when the input character is a digit:
-  the input starts a number;                        // trigger action
-  and the previous input is '-':                    // embedded trigger statement
-    the previous input starts a negative number.    // trigger action for the embedded trigger 
-```
-In this example we used `when` operator that, in its simplest form, accepts a trigger statement and a trigger action. This example also makes use of extended argument lookup to join two trigger words with the `and` logical operator, meaning that additional trigger statement will be evaluated if and only if the main trigger statement is true. The extended argument lookup rules will be described later in this document.
-
-Trigger statements work very similar to event handlers in the sense that they are re-evaluated every time any of the used in the statement values changes and, if trigger statement is evaluated to be true then the trigger action is executed.
-
-So, in classic terms, this example:
-- creates an event handler
-- subscribes the event handler to receive mutations on reference `the input character` 
-- upon receiving a mutation event the handler evaluates its trigger statement and,
-- if the trigger statement evaluates to truth then the handler executes its action and
-- then this operation is repeated for the embedded trigger statement
-
-The `<reference> starts a <noun>` construct is called a noun start statement and is the most important part of this example as it instructs cliffhanger computer to change the behavior of the reference so that any object (including the start object) that it references is treated as a part of the noun up until this behavior is cancelled with a noun stop statement that looks like `<reference> stops a <noun>` and has the same values used both for `<reference>` and `<noun>`.
-
-When a noun stop statement is executed all values that were referenced by statement's `<reference>` since the corresponding start statement was executed are grouped together into a single object and added into the noun set. 
+A value can be assigned to a set by using `is a` operator construct, for example: `the input character is a digit`. After the example is executed the object referenced by `the input character` at the moment of execution becomes a member of the digit set. If the set did not exist before the first member is assigned to it then it is created automatically.
 
 #### Set member triggers
 Set member triggers can be used to execute additional statements on new members of the set before they are added to the set. For example thistrigger states that only digits that are less than `5` can be added to the set.
@@ -155,3 +198,4 @@ when cliffhanger error is a void reference:
 ```
 
 ### Operators
+Besides the reference tree, cliffhanger maintains
