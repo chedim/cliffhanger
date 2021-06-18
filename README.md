@@ -8,6 +8,16 @@ Each node of the graph represents a data structure.
 Each data structure has its internal data graph that can be partially exposed to other nodes.
 
 # Defining a node
+
+## Value node
+```
+node Fibonacchi(argument): #{
+  @[.argument = 1]: 1
+  else: Fibonacchi(argument - 1) + Fibonacchi(argument - 2)
+}
+```
+
+## Structure node
 ```
 import com.example.OnlineActivity;
 import com.example.PasswordChange;
@@ -22,9 +32,12 @@ node User {
   // This is a date field that should have value smaller than now - 16 years
   dob: `< -16y`
 
+  // this field stores floating point values between 0.0 and 100.0 (including the boundaries)
+  karma: $[0-100]
+
   // this field is of type number and its value is generated
   // based on dob field and cannot be set from outside
-  (age): {
+  (age): #{
     dob: `now - $dob`.years
   }
 
@@ -47,16 +60,17 @@ node User {
   // the '?' symbol is used to reference a single bit or boolean value (true/false and 1/0 are synonyms)
   online: ? -> {
     // initialization value
-    new@User: false;
+    new@User => false;
 
     // mark user as online when they log in or
     // when they perform an activity
-    unlock = password || new@OnlineActivity: true
+    unlock = password || new@OnlineActivity => true
+
     // this is a timed mutation: 
     // every time the value of online changes to true
     // it starts a 1-hour timer (cancelling previously set timer)
     // and marks user offline when the timer is due
-    `1h`@online[= true]: false
+    `1h`@online[= true] => false
   }
 
   // defines an array of 10 bits
@@ -68,3 +82,6 @@ node User {
   settings[/.*/]: /.*/
 }
 ```
+
+
+
