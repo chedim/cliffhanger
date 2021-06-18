@@ -27,21 +27,25 @@ node User {
   (age): {
     dob: `now - $dob`.years
   }
+
+  // the :: can be used to define the field differently for outside consumers
+  // in this case `online` refers to the last modification date of the 'online' field
+  (lastActivity)::`online`
+
   // this is a string field with some additional update rules
+  // and a custom outside definition -- the fiel will have different values
+  // depending on wether it is accessed from inside the node or outside of it
   password: /.{8,}/ {
     // this is a mutation rule
     // it gets triggered whenever the `new` event is emited on com
     new@PasswordChange[.old = password]: .new
-  }
+  }::""
 
   // this field is transient -- it can be set from outside, but not read and it is not stored
   (unlock): /.{8,}/
   
-  // this is an alias field -- it references a value,
-  // in this case `online` refers to the last modification date of the 'online' field
-  (lastActivity)::`online`
-
-  online: ? {
+  // the '?' symbol is used to reference a single bit or boolean value (true/false and 1/0 are synonyms)
+  online: ? -> {
     // initialization value
     new@User: false;
 
@@ -55,5 +59,12 @@ node User {
     `1h`@online[= true]: false
   }
 
+  // defines an array of 10 bits
+  flags[10]: ?
+  // defines an array of 5 strings:
+  nicknames[5]: /.*/
+
+  // defines a map:
+  settings{/.*/}: /.*/
 }
 ```
