@@ -65,6 +65,6 @@ node User {
   nicknames[5]: /.*/
 
   // defines a map:
-  settings{/.*/}: /.*/
+  settings[/.*/]: /.*/
 }
 ```
