@@ -57,10 +57,9 @@ node User {
   // this field is transient -- it can be set from outside, but not read and it is not stored
   (unlock): /.{8,}/
   
-  // the '?' symbol is used to reference a single bit or boolean value (true/false and 1/0 are synonyms)
-  online: ? -> {
-    // initialization value
-    new@User => false;
+  // this field has a default value (false)
+  // that can be changed by some mutation rules
+  online => false: {
 
     // mark user as online when they log in or
     // when they perform an activity
