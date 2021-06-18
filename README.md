@@ -35,11 +35,11 @@ node User {
   // this is a string field with some additional update rules
   // and a custom outside definition -- the fiel will have different values
   // depending on wether it is accessed from inside the node or outside of it
-  password: /.{8,}/ {
+  password::"": /.{8,}/ {
     // this is a mutation rule
     // it gets triggered whenever the `new` event is emited on com
     new@PasswordChange[.old = password]: .new
-  }::""
+  }
 
   // this field is transient -- it can be set from outside, but not read and it is not stored
   (unlock): /.{8,}/
