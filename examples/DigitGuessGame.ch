@@ -1,6 +1,6 @@
 the secret is the next random number
 user wins when guess == secret:
-  oterwise user looses when no more gusesses
+  otherwise user looses when no more gusesses
 
 guesses are 3 numbers from user with prompts:
   - "Guess a number:" when first guess
