@@ -1,6 +1,5 @@
-the secret is the next {random number}
+the secret is the next random number
 user:
-  is the {user}
   wins when guess == secret
   looses when no more gusesses
 
@@ -12,7 +11,6 @@ user messages are:
   - "You win!" when user wins
   - "You lost." when user looses 
  
-
-{shell result} is:
+shell result is:
   - 0 when user wins
   - 1 when user looses
