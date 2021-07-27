@@ -1,4 +1,0 @@
-struct MutationCheck {
-    code: String
-}
-
