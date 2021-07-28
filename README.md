@@ -20,38 +20,28 @@ Recalculations are triggered automatically by changes in the application data mo
 # Language Overview
 Striving to be an easy to read language, Cliffhanger uses terms from English language to describe provided langage elements.
 
+## Statements
+Cliffhanger statements are used to define datapoints.
+Statements always start at column 0 and end with two newline symbols (an empty line)
+A minimal statement must contain at least a datapoint name.
+Optional definition sections may be included in the statement to define custom values for the datapoint.
+Each definition section may include optional condition sub-section that defines wether the definition should be activated or not.
+If no condition sub-section is provided then the definition is considered active.
+Cliffhanger always uses the first definition section that is active and ignores all the rest.
+If at least one definition section is present but none of the definitions is active then the datapoint assigned the boolean value `false`
+If no definition section is provided then the datapoint assigned the boolean value `true`.
+
 ## Words
-In cliffhanger source coden set of symbols that are not whitespace of punctuation characters constitutes a word.
+In cliffhanger source code any set of symbols that are not whitespace of punctuation characters constitutes a word.
 Words that include non-alphabetical symbols must be explicitly defined either in preamble or by the application as aliases for alphabetical words.
 Alphabetical words don't need to be defined. 
 
-## Sentences and parts of speech
-Cliffhanger code is organized into sentences of words.
-Natural language processing is used to extract additional inforation on used words based on their context and normalize the sentences.
-Cliffhanger recognizes the following parts of speech:
-
-### Nouns
-Nouns are used to name datapoints.
-Plural forms of nouns can be used to refer to a whole set of values a datapoint has taken _or will take_ during the lifecycle of the application.
-For example, the noun `users` refers to all values that datapoint `user` takes during the execution of the application.
-
-### Pronouns
-Pronouns can be used as substitutions for nouns.
-All used pronouns must be defined and their definitions used to calculate the value that should be used in place of the pronoun.
-Cliffhanger provides the following pronouns:
-- `it is a noun`
-- `they are a plural`
-- `he is a male`
-- `she is a female`
-
-### Verbs
-Cliffhanger treats undefined verbs as names for states a datapoint can take.
-For example, `user runs when his speed > 5` defines a state for datapoint `user` that can later be used in different conditions.
+## Phrases
+Cliffhanger uses semantic contexts to group words into phrases.
+Words are collected into a phrase of corresponding to the current context type until a context changing keyword is met.
 
 ## Semantic Contexts
-Cliffhager keeps track of semantic contexts which define specific behavior for words.
-When entering a context, cliffhanger machine will start collecting words from the statement until an context switching keyword is met.
-The context is then evaluated according to its type:
+Cliffhager keeps track of semantic contexts which define specific behavior for phrases.
 - the naming context is the starting context for every statement. Collected words are treated by this context as datapoint names. 
 - the definition context usually entered into with `is` keyword. Collected words are then treated by this context as a datapoint definition.
 - the condition context enetered into with `when` keyword. Collected words are treated as a definition for a flag datapoint that controls when the including statement is active.
