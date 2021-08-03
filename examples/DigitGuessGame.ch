@@ -1,5 +1,5 @@
 the secret is the next random number
-user wins when guess equals secret,
+user wins when guess == secret,
   otherwise user looses when no more gusesses
 
 guesses are 3 numbers from user with prompts:
