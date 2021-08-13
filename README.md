@@ -1,5 +1,5 @@
 # cliffhanger
-Cliffhanger is a natural model-based programming language that extends reactional and declarative programming into mutational programming.
+Cliffhanger is a natural model-based programming language that combines classic data definition language elements with reactional and declarative programming. 
 
 # Acknowlegments
 This language was highly influenced by the following technologies:
