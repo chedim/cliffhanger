@@ -145,5 +145,4 @@ Cliffhanger supports the following basic value classes:
 - sequence - a sequence of values
 
 ### Custom classes
-Each cliffhanger file defines a custom datapoint class.
-All datapoints
+Every cliffhanger source file defines a custom datapoint class with the name of that file.
