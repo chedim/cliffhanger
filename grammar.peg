@@ -1,7 +1,0 @@
-CliffhangerFile: (Import | Node | Spacing)*
-
-Import: Spacing* 'import' Spacing+ NodePath Spacing* ';' Spacing*
-
-Node: 'node' Spacing+ NodeName Spacing+ NodeParentList? Spacing* '{' Spacing* NodeField* Spacing * '}'
-
-Spacing: '\s' | '\t' | '\n'
