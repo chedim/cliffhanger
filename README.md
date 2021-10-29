@@ -1,5 +1,5 @@
 # cliffhanger
-Cliffhanger is a natural model-based programming language that combines classic data definition language elements with reactional and declarative programming. 
+Cliffhanger is a natural log processing programming language that combines classic data definition language elements with reactional and declarative programming. 
 
 # Acknowlegments
 This language was highly influenced by the following technologies:
@@ -15,6 +15,10 @@ This document intended to be a roadmap for cliffhanger development.
 I plan to implement POC of cliffhanger mutation machine using memcached to store application data model.
 This should allow non-distributed execution of CH applications as well as persisting application data with Couchbase.
 The next step would be to implement the language as couchbase service module, which should make possible running cliffhanger applications across a cluster of nodes.
+
+# Cliffhanger applications
+Cliffhanger applications operate by consuming input streams and generating output streams. 
+Read from streams data is stored by the application using datapoints.
 
 # Mutational programming
 Mutational programming is performed by describing how data should mutate and conditions that trigger those mutations.
@@ -131,6 +135,10 @@ If requested datapoint's value hasn't been previously calculated and is absent f
 When any of datapoints referenced in a definition change their value the calculated value is removed from the context, which should trigger value recalculation the next time the datapoint value is requested.
 
 ## Datapoint classes
+Every cliffhanger source file corresponds to a single datapoint class.
+Class package name is constructed from the relative path of the file. 
+The name of the file becomes the name of the class.
+Classes are automatically located during runtime.
 Cliffhanger classes are arranged into a directed graph that is separate from application's data graph and can be accessed using the `a` keyword.
 When a class is assigned to a datapoint it inherits all associated datapoint definitions of that class.
 For example, basic class `sequence` defines associated datapoint `length`, which makes all sequences have a `length` datapoint that uses the same definitions as `sequence length` associated with them.
