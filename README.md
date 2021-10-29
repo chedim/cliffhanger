@@ -18,7 +18,7 @@ The next step would be to implement the language as couchbase service module, wh
 
 # Cliffhanger applications
 Cliffhanger applications operate by consuming input streams and generating output streams. 
-Read from streams data is stored by the application using datapoints.
+Read from streams data is stored by the application in its data graph using datapoints.
 
 # Mutational programming
 Mutational programming is performed by describing how data should mutate and conditions that trigger those mutations.
