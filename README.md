@@ -42,22 +42,17 @@ Whenever the control datapoint evaluates to `false` the controlled definition be
 Striving to be an easy to read language, Cliffhanger uses terms from English language to describe provided langage elements.
 
 ## Statements
-Examples:
+Example:
 ```
-z // the simplest statement just creates a datapoint that will always evaluate to true
+name prompt is "Enter Your name"
 
-x is 20 
+name is a cin text line after cout is name prompt
 
-y is:
-- 10 when the user is not registered
-- 20 otherwise
-
-the user is registered
-
-the letter is queued when the user clicks the send button
-
-user messages are the last 10 messages with recipient == user
-
+cout is:
+  after name is set: "Hello, ${name}!"
+  before this is unloaded:
+    if name is set: "Bye, ${}"
+    else: "Bye, anonymous"
 ```
 
 Cliffhanger statements are used to define datapoints.
@@ -73,12 +68,13 @@ or its class:
 Only one value definition can be active for a datapoint at a time.
 
 Each definition section may include optional condition sub-section that defines definition's control datapoint.
-If no condition sub-section is provided then the definition is considered active.
+If no condition sub-section is provided then the definition is considered active after all other definitions fail.
 To calcualte datapoiont's value, Cliffhanger always uses the first value definition section (in the order they appear in the source code) that is active and ignores other definitions without checking their control point values.
 If at least one definition section is present but none of the definitions is active then the datapoint is not defined and evaluates to false.
 
 ## Words
-In cliffhanger source code any set of symbols that are not whitespace, reserved keywords ad literals or punctuation characters constitutes a word.
+In cliffhanger source code any set of symbols that are not whitespace, reserved keywords and literals or punctuation characters constitutes a word.
+If a word with forbidden name needs to be defined then its name needs to be escaped: `event \when is a date`.
 Words that include non-alphabetical symbols must be explicitly defined either in preamble or by the application as aliases for alphabetical words.
 Alphabetical words don't need to be defined. 
 
@@ -86,8 +82,6 @@ Alphabetical words don't need to be defined.
 Cliffanger automatically normalizes all words using common English language dictionary. 
 Developers may extend or overwrite the default dictionary:
 `publics is a plural of public`
-utl
-out
 `be is a form of is`
 etc.
 
@@ -104,30 +98,33 @@ Naming context is the starting context for every statement.
 Naming context phrases are treated as paths on the application's data graph.
 For example, phrase `current user name` will refer to datapoint `name` associated with datapoint `user` under datapoint `current`.
 
+### Request Context
+Request context is entered into with `a`/`an` _request keyword_ from a naming context.
+Request context collects a datapoint name.
+A value is then requested from the datapoint with collected name and used as the datapoint definition.
+
 ### Definition context
 Definition context is entered into with `is`/`are` _defining keyword_ from a naming context.
 
 ### Condition context
-Condition context is entered into with `when` _condition keyword_ either from naming or definitition context and provides control point definitions.
+Condition context is entered into with `if`/`before`/`after` _condition keywords_ either from naming or definitition context and provides control point definitions.
+Condition context may be exited into definition context using a semicolon.
 
 ## Definition branching
 Semicolon followed by newline (':\n') can be used in definiton context to provide multiple alternative branching definitions.
-Each branching definition then starts with a dash ('-') and ends with a newline ('\n'):
+Each branching definition then need to start with a whitespace offset:
 ```
-the fibonacchi of a numer is:
-- 0 when the number is 0
-- 1 when the number is 1
-- (the fibonacchi of (the number - 1)) + (the fibonacchi of (the number + 2)) otherwise
+the fibonacchi of a number is:
+  if the number is 0: 0
+  if the number is 1: 1
+  else: (the fibonacchi of (the number - 1)) + (the fibonacchi of (the number + 2))
 ```
 
 Only one value definition in a branching set can be active at a time.
 If none of the definitions is active then the datapoint is undefined and evaluates to false unless it has other active definitions.
 
 ## Datapoints
-Cliffhanger datapoints can belong either to abstract or concrete datapoint graph.
-The abstract graph contains type definitions and datapoint classes and can be accessed using the `a` keyword.
-The concrete graph contains concrete values calculated for application's datapoint.
-These ghraphs together constitute the application context.
+Cliffhanger datapoints construct a data graph that can react to external signals.
 
 ### Datapoint Values
 When a datapoint is referenced in a definition, cliffhanger machine first looks for the current datapoint value in the application context.
