@@ -1,11 +1,10 @@
 # Test driven development with cliffhanger
 
-Test driven developent in cliffhanger can be done by tracing data mutations. 
-For example, the following trace ensures that application exits in no more than 10 steps:
+Test driven developent in cliffhanger can be done with `must be/must not be` keywords:
 
 ```
-trace from started:
-  when length of the trace is above 10:
-    the error is "The behavior graph should have less than 10 edges"
+a user name length must be < 19
+a user email must not be false when user is verified
 ```
-end
+
+A violation of `must` statements at any time will cause the application to print the violated statement and mutation trace to stderr and exit with errror code 1.
