@@ -70,7 +70,7 @@ A minimal statement must contain at least a datapoint name and creates a datapoi
 
 optional definition sections may be included in the statement to define either the datapoint value: 
 `x is 20`, 
-or its class:
+or its class/label:
 `y is a number`
 Only one value definition can be active for a datapoint at a time.
 
@@ -144,10 +144,10 @@ Every cliffhanger source file corresponds to a single datapoint class.
 Class package name is constructed from the relative path of the file. 
 The name of the file becomes the name of the class.
 Classes are automatically located and loaded during runtime using paths from `CLIFF_LIB` environment variable.
-This behavior can be overridden by redefining `cliffhanger class` datapoint.
+This behavior can be overridden by redefining `class` datapoint.
 Cliffhanger classes are arranged into a directed graph that is separate from application's data graph and can be accessed using the `a` keyword.
 When a class is assigned to a datapoint it inherits all associated datapoint definitions of that class.
-For example, basic class `sequence` defines associated datapoint `length`, which makes all sequences have a `length` datapoint that uses the same definitions as `sequence length` associated with them.
+For example, basic class `number` defines associated datapoint `size`, which makes all number have a `size` datapoint that (unless it was overriden for that specific object or class) uses the same definitions as `number size` associated with them.
 
 ### Basic classes
 Cliffhanger supports the following basic value classes:
@@ -165,20 +165,21 @@ The default value for this property can be set by redefining `<type name> defaul
 
 ### Custom classes
 Every cliffhanger source file defines a custom datapoint class with the name of that file.
-The file class can be refered using `this` keyword.
-All datapoints defined under `this` are public.
+The file class can be referenced with its name, instance of the class is referenced with `a/an` keyword.
+Every class automatically has access to 
+All datapoints explicitly defined under the file class are public.
 All datapoints defined in a source file except for datapoints defined under `static` and the name of the file are instance-scoped.
 For example, example.cliff:
 ``` 
-this created is a number of size 4            // creates a public datapoint
+an example created is a number of size 4     // a public datapoint
 
-initialized                                   // creates a private boolean datapoint
+initialized                                   // a private boolean datapoint
 
-example goal is "to learn cliff"              // creates a public static datapoint
+example goal is "to learn cliff"              // a public static datapoint
 
-static target is "to write an app a day"      // creates a private static datapoint
+static target is "to write an app a day"      // a private static datapoint
 
-example target is static target               // creates a public static alias to a private static datapoint
+example target is static target               // a public static alias to a private static datapoint
 
 ```
 
@@ -205,28 +206,77 @@ stdout is "{reference}" // outputs 'value'
 stdout is "{{reference}}" // outputs '20'
 ```
 
+### Debug substitutions
+`{?datapoint}` should substitute the current definition of the datapoint:
+```
+value is 10; stdout is "{?value}" // outputs 'value is 10'
+new value is 20; stdout is "{?new value + value}" // outputs 'new value + value is 20'
+```
+
 ### Datapoint arguments
-Substituting a class in datapoint name allows to create datapoints that can accept arguments.
+Referencing a class in datapoint name allows to create datapoints that accept arguments.
 Substituted value can then be used in datapoint definition with `the` keyword:
 ```
-the fibonacchi of {a number} is:
+fibonacchi of a number is:
   0 when the number is 0
   1 when the number is 1
-  the fibonacchi of (the number - 1) + the fibonacchi of (the number - 2)
+  fibonacchi of (the number - 1) + fibonacchi of (the number - 2)
+```
+Parametrized datapoints can then be used in combination with parameters as regular datapoints:
+```
+stdout is "{?fibonacchi of 4}"  // outputs 'fibonacchi of 4 is 3'
 ```
 
 ## Streams
 Cliffhanger streams represet an ordered set of values.
+Streams can be labeled as closed,in that case the stream acts as a collection.
+Opened streams are considered to be of an infinite size.
+Opened streams accessed using a floating window that keeps `{a stream} window size` items in the context.
+Default window size is stored as `default window size` and equals to 10 elements.
 Streams must always be referenced using plurals:
 `names are strings`
 Each stream value can be addressed by its position using the hash symbol:
 `stdout is name#3`
 `index is 10; stdout is name#{index}`
-Using stream name in its singular form returns the current value of the stream:
-`stdout is name`
+Using stream name in its singular form with `the` keyword returns the current value of the stream:
+`stdout is the name`
 The current position of the stream can be referenced using the hashtag symbol with stream singular name:
 `stdout is "Name number {name#} is {name}"`
-Values can be added onto a stream by labeling them with stream name:
-`"Victor" is a name`
+Values can be added onto a stream either by labeling them with stream name:
+`identifier is a name when no name`
+Streams can be merged with other streams using `are` keyword:
+`apples are oranges`
+Some members of a stream can be assigned to other streams as well:
+`the identifier is a name when no name`
+
+### Anchors
+Streams provide `<anchor> {a stream}` datapoints, where anchors are defined as either "the first" or "the last":
+These datapoints allow accessing the first and, in case of a closed stream, the last element of the stream:
+```
+winner is the first runner
+
+sender is the last message author
+```
 
 ### Slices
+Streams also provide `<anchor> {a number} {a stream}` parametrized datapoint that allows to slice the stream:
+```
+winners are the first 10 users
+
+log is the last 10 stdout
+```
+
+## Inheritance
+Inheritance is supported by accepting labels on classes. 
+Multiple inheritance is allowed.
+
+animal.cliff:
+```
+an animal name is a string
+an animal kind is a string
+```
+cat.cliff:
+```
+cat is an animal
+a cat kind is "cat"
+```
