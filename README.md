@@ -121,7 +121,7 @@ Condition context may be exited into definition context using a semicolon.
 Semicolon followed by newline (':\n') can be used in definiton context to provide multiple alternative branching definitions.
 Each branching definition then need to start with a whitespace offset:
 ```
-today is weekend:
+today is a weekend:
   when today is saturday
   when today is sunday
 ```
