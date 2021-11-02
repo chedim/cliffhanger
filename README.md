@@ -1,5 +1,5 @@
 # cliffhanger
-Cliffhanger is a natural log processing programming language that combines classic data definition language elements with reactional and declarative programming. 
+Cliffhanger is a natural stream processing programming language that combines classic data definition language elements with reactional and declarative programming. 
 
 # Acknowlegments
 This language was highly influenced by the following technologies:
@@ -17,7 +17,7 @@ This should allow non-distributed execution of CH applications as well as persis
 The next step would be to implement the language as couchbase service module, which should make possible running cliffhanger applications across a cluster of nodes.
 
 # Cliffhanger applications
-Cliffhanger applications operate by consuming input streams and generating output streams. 
+Cliffhanger applications operate by consuming input streams and exposing processed data for further consumption.
 Read from streams data is stored by the application in its data graph using datapoints.
 
 # Mutational programming
@@ -44,14 +44,19 @@ Striving to be an easy to read language, Cliffhanger uses terms from English lan
 ## Statements
 Example:
 ```
+stdin is an input glyph stream
+
+stdout is an output glyph stream
+
 name prompt is "Enter Your name"
 
-name is a cin text line after cout is name prompt
+name is a text line from stdin after name prompt is in stdout
 
-cout is:
+stdout is:
+  name prompt
   after name is set: "Hello, ${name}!"
   before this is unloaded:
-    if name is set: "Bye, ${}"
+    if name is set: "Bye, ${name}"
     else: "Bye, anonymous"
 ```
 
@@ -110,6 +115,8 @@ Definition context is entered into with `is`/`are` _defining keyword_ from a nam
 Condition context is entered into with `if`/`before`/`after` _condition keywords_ either from naming or definitition context and provides control point definitions.
 Condition context may be exited into definition context using a semicolon.
 
+... many more contexts... maybe this is not the right term and/or way to describe them?
+
 ## Definition branching
 Semicolon followed by newline (':\n') can be used in definiton context to provide multiple alternative branching definitions.
 Each branching definition then need to start with a whitespace offset:
@@ -135,19 +142,48 @@ When any of datapoints referenced in a definition change their value the calcula
 Every cliffhanger source file corresponds to a single datapoint class.
 Class package name is constructed from the relative path of the file. 
 The name of the file becomes the name of the class.
-Classes are automatically located during runtime.
+Classes are automatically located and loaded during runtime using paths from `CLIFF_LIB` environment variable.
+This behavior can be overridden by redefining `cliffhanger class` datapoint.
 Cliffhanger classes are arranged into a directed graph that is separate from application's data graph and can be accessed using the `a` keyword.
 When a class is assigned to a datapoint it inherits all associated datapoint definitions of that class.
 For example, basic class `sequence` defines associated datapoint `length`, which makes all sequences have a `length` datapoint that uses the same definitions as `sequence length` associated with them.
 
 ### Basic classes
 Cliffhanger supports the following basic value classes:
-- digit - digits between 0 and 9
+- digit - digits between 0 and `cliffhanger max digit` (default: 10)
 - number - signed integer numers
+- float - signed float numbers
 - fraction - an unsigned fractional number between 0 and 1
 - flag - a boolean value that is either true or false
 - glyph - a number that represents a Unicode glyph
-- sequence - a sequence of values
+- stream - a stream of values
+
+Digit, number, and float classes provide `size` property as their sub-datapoint. 
+This property defines the allocated memory size for the value.
+The default value for this property can be set by redefining `<type name> default size` datapoint.
 
 ### Custom classes
 Every cliffhanger source file defines a custom datapoint class with the name of that file.
+The file class can be refered using `this` keyword.
+All datapoints defined under `this` are public.
+All datapoints defined in a source file except for datapoints defined under `static` and the name of the file are instance-scoped.
+For example, example.cliff:
+``` 
+this created is a number of size 4            // creates a public datapoint
+initialized                                   // creates a private boolean datapoint
+example goal is "to learn cliff"              // creates a public static datapoint
+static target is "to write an app a day"      // creates a private static datapoint
+example target is static target               // creates a public static alias to a private static datapoint
+```
+
+### Undefined datapoint capturing
+Access to undefined sub-datapoints can be captured using special `?lookup` datapoint.
+The `?query` datapoint can be used in `?lookup` datapoint definition to access the name of the requested sub-datapoint.
+
+### Datapoint value substitution
+Datapoint values can be substituted into the current context by wrapping datapoint names in figure brackets:
+```
+value is 20
+reference is "value"
+stdout is {reference} // outputs 20
+```
