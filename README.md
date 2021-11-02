@@ -44,6 +44,8 @@ Striving to be an easy to read language, Cliffhanger uses terms from English lan
 ## Statements
 Example:
 ```
+today is tuesday; user is logged in
+
 stdin is an input glyph stream
 
 stdout is an output glyph stream
@@ -61,7 +63,7 @@ stdout is:
 ```
 
 Cliffhanger statements are used to define datapoints.
-Statements always start at column 0 and end with two newline symbols (an empty line).
+Statements always start at column 0 and end with two newline symbols (an empty line) or the semicolon symbol.
 
 A minimal statement must contain at least a datapoint name and creates a datapoint with constant value `true`:
 `z`
@@ -204,3 +206,19 @@ the fibonacchi of {a number} is:
   1 when the number is 1
   the fibonacchi of (the number - 1) + the fibonacchi of (the number - 2)
 ```
+
+## Streams
+Cliffhanger streams represet an ordered set of values.
+Streams must always be referenced using plurals:
+`names are strings`
+Each stream value can be addressed by its position using the hash symbol:
+`stdout is name#3`
+`index is 10; stdout is name#{index}`
+Using stream name in its singular form returns the current value of the stream:
+`stdout is name`
+The current position of the stream can be referenced using the hashtag symbol with stream singular name:
+`stdout is "Name number {name#} is {name}"`
+Values can be added onto a stream by labeling them with stream name:
+`"Victor" is a name`
+
+### Slices
