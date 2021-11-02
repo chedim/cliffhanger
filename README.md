@@ -2,13 +2,14 @@
 Cliffhanger is a natural stream processing programming language that combines classic data definition language elements with reactional and declarative programming. 
 
 # Acknowlegments
-This language was highly influenced by the following technologies:
+This language was highly influenced by the following technologies and cultural artifacts:
 - JavaScript
 - Forth
 - SAIL programming language by Appian
 - RMPL (Reactive Model-based Programming Language for robotic space explorers) by MIT
 - Apache Kafka
 - Java streaming API
+- the "Love is..." bubble gum.
 
 # About this document
 This document intended to be a roadmap for cliffhanger development.
