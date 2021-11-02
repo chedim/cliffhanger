@@ -141,6 +141,7 @@ When any of datapoints referenced in a definition change their value the calcula
 
 ## Datapoint classes
 Every cliffhanger source file corresponds to a single datapoint class.
+Every datapoint class corresponds to a stream of instances of that class that can be accessed using the name of the class in its plural form.
 Class package name is constructed from the relative path of the file. 
 The name of the file becomes the name of the class.
 Classes are automatically located and loaded during runtime using paths from `CLIFF_LIB` environment variable.
@@ -273,10 +274,14 @@ Multiple inheritance is allowed.
 animal.cliff:
 ```
 an animal name is a string
+
 an animal kind is a string
+
 ```
 cat.cliff:
 ```
 cat is an animal
+
 a cat kind is "cat"
+
 ```
