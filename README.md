@@ -203,23 +203,23 @@ value is 20
 
 reference is "value"
 
-stdout is {reference} // outputs '20'
+{reference} is an output // outputs '20'
 
 ```
 
 In strings, however, the value of the named datapoint will be substituted instead:
 ```
-stdout is "{reference}" // outputs 'value'
+"{reference}" is an output // outputs 'value'
 ```
 ```
-stdout is "{{reference}}" // outputs '20'
+"{{reference}}" is an output // outputs '20'
 ```
 
 ### Debug substitutions
 `{?datapoint}` should substitute the current definition of the datapoint:
 ```
-value is 10; stdout is "{?value}" // outputs 'value is 10'
-new value is 20; stdout is "{?new value + value}" // outputs 'new value + value is 20'
+value is 10; "{?value}" is an output // outputs 'value is 10'
+new value is 20; "{?new value + value}" is an output // outputs 'new value + value is 20'
 ```
 
 ### Datapoint arguments
@@ -233,7 +233,7 @@ fibonacchi of a number is:
 ```
 Parametrized datapoints can then be used in combination with parameters as regular datapoints:
 ```
-stdout is "{?fibonacchi of 4}"  // outputs 'fibonacchi of 4 is 3'
+"{?fibonacchi of 4}" is an output // outputs 'fibonacchi of 4 is 3'
 ```
 
 ## Streams
@@ -245,16 +245,21 @@ Default window size is stored as `default window size` and equals to 10 elements
 Streams must always be referenced using plurals:
 `names are strings`
 Each stream value can be addressed by its position using the hash symbol:
-`stdout is name#3`
-`index is 10; stdout is name#{index}`
+`name#3 is an output`
+`index is 10; name#{index} is an output`
+
 Using stream name in its singular form with `the` keyword returns the current value of the stream:
-`stdout is the name`
+`the name is an output`
+
 The current position of the stream can be referenced using the hashtag symbol with stream singular name:
-`stdout is "Name number {name#} is {name}"`
+`"Name number {name#} is {name}" is an output`
+
 Values can be added onto a stream either by labeling them with stream name:
 `identifier is a name when no name`
+
 Streams can be merged with other streams using `are` keyword:
 `apples are oranges`
+
 Some members of a stream can be assigned to other streams as well:
 `the identifier is a name when no name`
 
@@ -272,7 +277,7 @@ Streams also provide `<anchor> {a number} {a stream}` parametrized datapoint tha
 ```
 winners are the first 10 users
 
-log is the last 10 stdout
+log is the last 10 outputs
 ```
 
 ## Inheritance
