@@ -53,13 +53,13 @@ name is an input text line after name prompt is an output
 outputs are:
   name prompt
   when name is set: "Hello, {name}!"
-  before this unloaded:
+  before this is unloaded:
     when name is set: "Bye, {name}!"
     else: "Bye, anonymous!"
 ```
 
 Cliffhanger statements are used to define datapoints.
-Statements always start at column 0 and end with two newline symbols (an empty line) or the semicolon symbol.
+Statements always start at column 0 and end with two newline symbols (an empty line) or the semicolon symbol after which another statement can be started on the same or the next line.
 
 A minimal statement must contain at least a datapoint name and creates a datapoint with constant value `true`:
 `z`
@@ -223,8 +223,6 @@ Parametrized datapoints can then be used in combination with parameters as regul
 ```
 stdout is "{?fibonacchi of 4}"  // outputs 'fibonacchi of 4 is 3'
 ```
-
-Calculated parametrized datapoint values are never added to the application context.
 
 ## Streams
 Cliffhanger streams represet an ordered set of values.
