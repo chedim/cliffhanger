@@ -127,6 +127,16 @@ today is a weekend:
 Only one value definition in a branching set can be active at a time.
 If none of the definitions is active then the datapoint is undefined and evaluates to false unless it has other active definitions.
 
+## Statement grouping
+Statements that start with the same set of words can be grouped into one statement using the semicolon followed by new line:
+```
+user:
+  name is "Alfred"
+  age is 24
+  email is "alfred@alfred.com"
+  group is a group
+ ```
+
 ## Datapoints
 Cliffhanger datapoints construct a data graph that can react to external signals.
 
