@@ -134,7 +134,9 @@ user:
   name is "Alfred"
   age is 24
   email is "alfred@alfred.com"
-  group is a group
+  group:
+    is a group
+    name: "admins"
  ```
 
 ## Datapoints
