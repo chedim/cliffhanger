@@ -110,7 +110,7 @@ A value is then requested from the datapoint with collected name and used as the
 Definition context is entered into with `is`/`are` _defining keyword_ from a naming context.
 
 ### Condition context
-Condition context is entered into with `if`/`before`/`after` _condition keywords_ either from naming or definitition context and provides control point definitions.
+Condition context is entered into with `when`/`before` _condition keywords_ either from naming or definitition context and provides control point definitions.
 Condition context may be exited into definition context using a semicolon.
 
 ... many more contexts... maybe this is not the right term and/or way to describe them?
