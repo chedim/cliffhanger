@@ -198,6 +198,6 @@ Substituted value can then be used in datapoint definition with `the` keyword:
 ```
 the fibonacchi of {a number} is:
   0 when the number is 0
-  1 then the number is 1
+  1 when the number is 1
   the fibonacchi of (the number - 1) + the fibonacchi of (the number - 2)
 ```
