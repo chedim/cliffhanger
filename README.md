@@ -282,8 +282,8 @@ a cat kind is "cat"
 
 ```
 
-# TDD
-Test driven developent in cliffhanger can be done with `must be/must not be` keywords:
+# Data integrity validations
+`must [not] be` keyword can be used to enforce data integrity validations:
 
 ```
 a user name length must be < 19
@@ -292,3 +292,14 @@ a user must be verified before it is online
 ```
 
 A violation of `must` statements at any time will cause the application to print the violated statement and mutation trace to stderr and exit with errror code 1.
+
+
+# Appendix A: Standard preamble
+## Inputs
+An input is a stream that can be assigned by client applications or cliffhanger machine to external or internal output data stream of a compatible type.
+Marking a stream as an input allows cliffhanger applications consume push streams from external sources.
+Marking a value as an inout allows cliffhanger applications pull data from external sources.
+## Outputs 
+An output is a stream that can be consumed by external targets, stored in a file, or forwarded over the network.
+Marking a stream as an output allows cliffhanger applications push data to external consumers.
+Marking a value datapoint as an output allows cliffhanger applications expose endpoints that can be pulled by external clients.
