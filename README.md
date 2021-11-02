@@ -188,8 +188,11 @@ The `?query` datapoint can be used in `?lookup` datapoint definition to access t
 Datapoint values can be substituted into the current context by wrapping datapoint names in figure brackets:
 ```
 value is 20
+
 reference is "value"
+
 stdout is {reference} // outputs 20
+
 ```
 
 ### Datapoint arguments
