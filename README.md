@@ -113,6 +113,9 @@ Definition context is entered into with `is`/`are` _defining keyword_ from a nam
 Condition context is entered into with `when`/`before` _condition keywords_ either from naming or definitition context and provides control point definitions.
 Condition context may be exited into definition context using a semicolon.
 
+### Related mutation context
+Related mutation context is entered into with `after` _related mutation keyword_ either from naming or definition context and provides a related definition that should be applied to the application data tree _before_ the main definition is applied.
+
 ... many more contexts... maybe this is not the right term and/or way to describe them?
 
 ## Definition branching
