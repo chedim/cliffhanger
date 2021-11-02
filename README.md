@@ -54,9 +54,9 @@ name is a text line from stdin after name prompt is in stdout
 
 stdout is:
   name prompt
-  after name is set: "Hello, ${name}!"
+  after name is set: "Hello, {name}!"
   before this is unloaded:
-    if name is set: "Bye, ${name}"
+    if name is set: "Bye, {name}"
     else: "Bye, anonymous"
 ```
 
@@ -83,7 +83,7 @@ If a word with forbidden name needs to be defined then its name needs to be esca
 Words that include non-alphabetical symbols must be explicitly defined either in preamble or by the application as aliases for alphabetical words.
 Alphabetical words don't need to be defined. 
 
-### Word conjugation
+### Word Normalization
 Cliffanger automatically normalizes all words using common English language dictionary. 
 Developers may extend or overwrite the default dictionary:
 `publics is a plural of public`
@@ -121,10 +121,9 @@ Condition context may be exited into definition context using a semicolon.
 Semicolon followed by newline (':\n') can be used in definiton context to provide multiple alternative branching definitions.
 Each branching definition then need to start with a whitespace offset:
 ```
-the fibonacchi of a number is:
-  if the number is 0: 0
-  if the number is 1: 1
-  else: (the fibonacchi of (the number - 1)) + (the fibonacchi of (the number + 2))
+today is weekend:
+  when today is saturday
+  when today is sunday
 ```
 
 Only one value definition in a branching set can be active at a time.
@@ -170,10 +169,15 @@ All datapoints defined in a source file except for datapoints defined under `sta
 For example, example.cliff:
 ``` 
 this created is a number of size 4            // creates a public datapoint
+
 initialized                                   // creates a private boolean datapoint
+
 example goal is "to learn cliff"              // creates a public static datapoint
+
 static target is "to write an app a day"      // creates a private static datapoint
+
 example target is static target               // creates a public static alias to a private static datapoint
+
 ```
 
 ### Undefined datapoint capturing
@@ -186,4 +190,14 @@ Datapoint values can be substituted into the current context by wrapping datapoi
 value is 20
 reference is "value"
 stdout is {reference} // outputs 20
+```
+
+### Datapoint arguments
+Substituting a class in datapoint name allows to create datapoints that can accept arguments.
+Substituted value can then be used in datapoint definition with `the` keyword:
+```
+the fibonacchi of {a number} is:
+  0 when the number is 0
+  1 then the number is 1
+  the fibonacchi of (the number - 1) + the fibonacchi of (the number - 2)
 ```
