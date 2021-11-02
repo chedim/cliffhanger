@@ -193,8 +193,16 @@ value is 20
 
 reference is "value"
 
-stdout is {reference} // outputs 20
+stdout is {reference} // outputs '20'
 
+```
+
+In strings, however, the value of the named datapoint will be substituted instead:
+```
+stdout is "{reference}" // outputs 'value'
+```
+```
+stdout is "{{reference}}" // outputs '20'
 ```
 
 ### Datapoint arguments
