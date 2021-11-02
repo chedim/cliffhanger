@@ -43,24 +43,19 @@ Whenever the control datapoint evaluates to `false` the controlled definition be
 Striving to be an easy to read language, Cliffhanger uses terms from English language to describe provided langage elements.
 
 ## Statements
-Example:
+Example file -- hello.cliff:
 ```
-today is tuesday; user is logged in
+hello is an application
 
-stdin is an input glyph stream
+name prompt is "Enter your name: ";
+name is an input text line after name prompt is an output
 
-stdout is an output glyph stream
-
-name prompt is "Enter Your name"
-
-name is a text line from stdin after name prompt is in stdout
-
-stdout is:
+outputs are:
   name prompt
-  after name is set: "Hello, {name}!"
-  before this is unloaded:
-    if name is set: "Bye, {name}"
-    else: "Bye, anonymous"
+  when name is set: "Hello, {name}!"
+  before this unloaded:
+    when name is set: "Bye, {name}!"
+    else: "Bye, anonymous!"
 ```
 
 Cliffhanger statements are used to define datapoints.
