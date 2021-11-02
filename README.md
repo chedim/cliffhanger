@@ -215,14 +215,16 @@ Referencing a class in datapoint name allows to create datapoints that accept ar
 Substituted value can then be used in datapoint definition with `the` keyword:
 ```
 fibonacchi of a number is:
-  0 when the number is 0
-  1 when the number is 1
   fibonacchi of (the number - 1) + fibonacchi of (the number - 2)
+  when the number is 0: 0
+  when the number is 1: 1
 ```
 Parametrized datapoints can then be used in combination with parameters as regular datapoints:
 ```
 stdout is "{?fibonacchi of 4}"  // outputs 'fibonacchi of 4 is 3'
 ```
+
+Calculated parametrized datapoint values are never added to the application context.
 
 ## Streams
 Cliffhanger streams represet an ordered set of values.
