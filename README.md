@@ -292,8 +292,8 @@ Test driven developent in cliffhanger can be done with `must be/must not be` key
 
 ```
 a user name length must be < 19
-a user email must not be false when user is verified
-a user must be verified before user is online
+a user email must not be false when the user is verified
+a user must be verified before the user is online
 ```
 
 A violation of `must` statements at any time will cause the application to print the violated statement and mutation trace to stderr and exit with errror code 1.
