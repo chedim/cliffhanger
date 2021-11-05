@@ -50,7 +50,7 @@ hello is an application
 name prompt is "Enter your name: ";
 name is an input text line after name prompt is an output
 
-outputs are:
+output is:
   name prompt
   when name is set: "Hello, {name}!"
   before this is unloaded:
