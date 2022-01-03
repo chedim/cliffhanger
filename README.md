@@ -11,6 +11,9 @@ This language was highly influenced by the following technologies and cultural a
 - Java streaming API
 - the "Love is..." bubble gum.
 
+# Implementation
+For current implementation (still a WIP) check out this repo: https://github.com/chedim/cliff-go
+
 # About this document
 This document intended to be a roadmap for cliffhanger development.
 I plan to implement POC of cliffhanger mutation machine using memcached to store application data model.
