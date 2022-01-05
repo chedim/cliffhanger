@@ -1,5 +1,5 @@
 # cliffhanger
-Cliffhanger is a natural stream processing programming language that combines classic data definition language elements with reactional and declarative programming. 
+Cliffhanger is a natural reactive stream processing and data definition distributed programming language. 
 
 # Acknowlegments
 This language was highly influenced by the following technologies and cultural artifacts:
@@ -20,9 +20,54 @@ I plan to implement POC of cliffhanger mutation machine using memcached to store
 This should allow non-distributed execution of CH applications as well as persisting application data with Couchbase.
 The next step would be to implement the language as couchbase service module, which should make possible running cliffhanger applications across a cluster of nodes.
 
+# Cliffhanger Environment
+Cliffhanger environment is a cluster of computational nodes capable of executing cliffhanger applications using shared classification tree and data graph.
+For example, a cliffhanger environment may consist of:
+- A central cluster in the Cloud that provides security, monitoring and analytics
+- A swarm of Edge computing clusters that process data linked to a specific location
+- A swarm of mobile and desktop devices, each providing UI services for the environment users
+
+By maintaining global classification and data graph across all these clusters, cliffhanger environments remove the boundaries between cloud, edge, frontend and backend.
+
+## Classification Tree
+Cliffhanger environment constructs its data graph around a classification tree.
+Each node in the tree specifies a sub-class of its parent node.
+Every class contains a set of field and label definitions that define mutation rules for instances of the class.
+The classic inheritance relation exists between parent classes and their sub-classes.
+For example, the node `animal` may contain a sub-node `cat`, which will inherit all rules defined on the `animal` class.
+The tree can be addressed using the `a/an` keyword: `a cat`. 
+The tree is traversed by `a` references in reversed direction (down from leaves to the root): `a cat animal` will address subtype `cat` of type `animal`.
+External classification tree definitions can be loaded into environment from remote or local libraries.
+
+## Entity graph
+Entity graph is the part of environment data graph that is constructed from classification tree.
+The graph can be addressed using `the` keyword: `the cat`
+The graph is traversed by `the` referenced in forward direction (up from the root to leaves): `the cat name`
+The nodes of entity graph represent data variables. 
+Edges between those nodes represent data ownership: `the cat name` represents entity `name` owned by an entity classified as `a cat`
+
+## Classification labels
+Classification labels are used to create edges from entity graph to the classification tree.
+Labels added using `is` operator: `the animal is a cat`.
+When a label is added to the entity, that entity is added into the corresponding entity collection and is sent to collection's processing unit(s).
+
+## Collections
+Each node of classification tree has a corresponding collection that contains all entities of that class.
+Collections can be referenced using plurals, for example `users` will reference collection of entities classified as `a user`.
+
+### Input collections
+All application entities originate from input collections. 
+These collections can be created either by cliffhanger application to represent application inputs, 
+    or by the environment to represent available to cliffhanger output methods.
+
+### Output collections 
+Like inputs, output collections can be created either by the application to expose its calculation results to the environment,
+    or by the environment to represent available data input methods.
+
 # Cliffhanger applications
-Cliffhanger applications operate by consuming input streams and exposing processed data for further consumption.
-Read from streams data is stored by the application in its data graph using datapoints.
+Cliffhanger applications represent namespaced regions of cliffhanger environment's data graph.
+When an application is loaded, all unresolved classification tree references are mapped to the global environment classificatoin tree.
+This allows to avoid using `import` statements in the language :)
 
 # Mutational programming
 Mutational programming is performed by describing how data should mutate and conditions that trigger those mutations.
@@ -33,10 +78,19 @@ Cliffhanger supports mutational programming with two mechanisms -- dynamic defin
 
 ## Cascading Reevaluations
 Cliffhanger applications developed around datapoints -- a special kind of variables. 
-Datapoint values are calculated from developer-provided data definitions.
+By default, datapoint values are calculated from developer-provided data definitions.
 If a definition references another datapoint then the definition is said to depend on that datapoint.
 Whenever a datapoint value changes all its dependant definitions as well as their dependant definitions are marked for reevaluation.
 Definitions are re-evaluated lazily only when their value is requested by any of their dependant definitions.
+
+## Static datapoints
+Datapoints that are not accessed via `the` operator are considered static.
+Static datapoint values are calculated immediately after the application starts and automatically reevaluated every time
+their dependencies change.  
+
+## Persisted datapoints
+To persist datapoint values across application startups developers should label them as persisted, for example: 
+`users are persisted`.
 
 ## Dynamic Definition Switching
 Cliffhanger datapoint definitions may be enabled and disabled based on the value of an optional control datapoint.
@@ -316,6 +370,11 @@ a user must be verified before it is online
 
 A violation of `must` statements at any time will cause the application to print the violated statement and mutation trace to stderr and exit with errror code 1.
 
+# Inter-library communication and FFI
+Cliffhanger libraries are loaded into separate cliffhanger processes that communicate changes in their data graphs using network sockets.
+This allows running cliffhanger applications using computational clusters distributed across LAN as well as the Internet.
+Hosted libraries can be used to protect intellectual property as well as an API for commercial services.
+Refer to FFI.md for protocol details.
 
 # Appendix A: Standard preamble
 ## Inputs
