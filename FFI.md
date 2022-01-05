@@ -62,8 +62,8 @@ Client may request library's output datapoint value by sending the following mes
 ? key
 ```
 where key is either:
-- SHA1 of the datapoint name
-- quoted datapoint name
+- SHA1 of datapoint name
+- json-quoted datapoint name
 
 Examples:
 ```
@@ -73,8 +73,8 @@ Examples:
 
 ### Value Message format
 Value message can be used:
-- by client to set a value in library's data graph
-- by library to notify a client about its data graph change
+- by client to set library's input datapoint session value 
+- by library to notify a client about changes in output datapoint session values
 - by library to respond to a value request message
 ```
 = key value
