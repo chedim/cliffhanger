@@ -27,10 +27,10 @@ set 1b63f41de1266ba378b1b6ad5c44ad60f21f2bef SGVsbG8sIENsaWZm
 Client messages may be rejected by the library.
 The library should notify the client about rejections by sending a rejection message:
 ```
-rejected reason
+EE: rejected reason
 ```
 where:
-- rejected: SHA1 of rejected message prefixed with "EE "
+- rejected: SHA1 of rejected message
 - reason: human-readable rejection reason
 
 Cliffhanger string escape sequences are supported in the rejection reason field.
@@ -43,13 +43,13 @@ EE: 4257ff111e606143fb8250713bc09d30128412d5 user password must be set
 ### Acceptance messages
 Libraries must respond with an acceptance message for every accepted value:
 ```
-accepted
+OK: accepted
 ```
 where:
-- accepted: SHA1 of accepted message prefixed with "ok: "
+- accepted: SHA1 of accepted message
 
 Example:
 ```
-ok: 4257ff111e606143fb8250713bc09d30128412d5
+OK: 4257ff111e606143fb8250713bc09d30128412d5
 ```
 
