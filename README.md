@@ -7,6 +7,7 @@ This language was highly influenced by the following technologies and cultural a
 - Forth
 - SAIL programming language by Appian
 - RMPL (Reactive Model-based Programming Language for robotic space explorers) by MIT
+- SQL
 - Apache Kafka
 - Java streaming API
 - the "Love is..." bubble gum.
@@ -51,18 +52,11 @@ Classification labels are used to create edges from entity graph to the classifi
 Labels added using `is` operator: `the animal is a cat`.
 When a label is added to the entity, that entity is added into the corresponding entity collection and is sent to collection's processing unit(s).
 
-## Collections
-Each node of classification tree has a corresponding collection that contains all entities of that class.
-Collections can be referenced using plurals, for example `users` will reference collection of entities classified as `a user`.
-
-### Input collections
-All application entities originate from input collections. 
-These collections can be created either by cliffhanger application to represent application inputs, 
-    or by the environment to represent available to cliffhanger output methods.
-
-### Output collections 
-Like inputs, output collections can be created either by the application to expose its calculation results to the environment,
-    or by the environment to represent available data input methods.
+### Output Datapoints 
+Output datapoints can be created by libraries to expose their state:
+```
+the current user is an output
+```
 
 # Cliffhanger applications
 Cliffhanger applications represent namespaced regions of cliffhanger environment's data graph.
@@ -125,7 +119,6 @@ optional definition sections may be included in the statement to define either t
 `x is 20`, 
 or its class/label:
 `y is a number`
-Only one value definition can be active for a datapoint at a time.
 
 Each definition section may include optional condition sub-section that defines definition's control datapoint.
 If no condition sub-section is provided then the definition is considered active after all other definitions fail.
@@ -178,6 +171,7 @@ Related mutation context is entered into with `after` _related mutation keyword_
 ## Definition branching
 Semicolon followed by newline (':\n') can be used in definiton context to provide multiple alternative branching definitions.
 Each branching definition then need to start with a whitespace offset:
+
 ```
 today is a weekend:
   when today is saturday
@@ -197,7 +191,7 @@ user:
   group:
     is a group
     name is "admins"
- ```
+```
 
 ## Datapoints
 Cliffhanger datapoints construct a data graph that can react to external signals.
@@ -282,23 +276,28 @@ value is 10; "{?value}" is an output // outputs 'value is 10'
 new value is 20; "{?new value + value}" is an output // outputs 'new value + value is 20'
 ```
 
-### Datapoint arguments
-Referencing a class in datapoint name allows to create datapoints that accept arguments.
-Substituted value can then be used in datapoint definition with `the` keyword:
+## Collections and streams
+
+### Collections
+Datapoints that have multiple acive definitions can be addressed either as by their singular name or by their plural name.
+
+Singular datapoint name will address the latest active datapoint definition:
 ```
-fibonacchi of a number is:
-  fibonacchi of (the number - 1) + fibonacchi of (the number - 2)
-  when the number is 0: 0
-  when the number is 1: 1
-```
-Parametrized datapoints can then be used in combination with parameters as regular datapoints:
-```
-"{?fibonacchi of 4}" is an output // outputs 'fibonacchi of 4 is 3'
+some value is the user
+some value is a console output
+// outputs the latest user name
 ```
 
-## Streams
+Plural datapoint name will address all collection members: 
+```
+some value are users
+some value is a console output
+// outputs all users
+```
+
+### Streams
 Cliffhanger streams represet an ordered set of values.
-Streams can be labeled as closed,in that case the stream acts as a collection.
+Streams can be labeled as closed, in that case the stream acts as a collection.
 Opened streams are considered to be of an infinite size.
 Opened streams accessed using a floating window that keeps `{a stream} window size` items in the context.
 Default window size is stored as `default window size` and equals to 10 elements.
@@ -332,13 +331,49 @@ winner is the first runner
 sender is the last message author
 ```
 
+### Indexing
+Collections can be indexed by prefixing them with an index phrase:
+```
+some value is the 3rd user
+some value is the 30th message
+some value is the last 5th message
+// etc...
+```
+
+Streams can be indexed both into the future and into the past:
+```
+the winner is the next 3rd registered user
+the winner is the last 5th online user
+the winner is the last {the winning number}th banned user
+``` 
+
+When indexed into the future, recalculation of dependant datapoints is delayed until the reference can be fulfilled.
+Indexing into the past creates a buffer on the stream.
+The size of the buffer is determined by the maximum requested index.
+The buffer size can be dynamic. 
+When buffer size increases, the new elements of the buffer are considered empty. 
+If an empty element is requested by a definition then dependant datapoint recalculation is delayed until the element is filled.
+
+### Collection filtering 
+Collections can be filtered using the `where` keyword:
+```
+registrations are users where the user is registered
+
+jobs are tasks where current time - the task expiration > the last task recalculation time
+
+displayed messages are the last 10 messages where folder = displayed folder
+```
+
 ### Slices
-Streams also provide `<anchor> {a number} {a stream}` parametrized datapoint that allows to slice the stream:
+Streams and collections also provide `<anchor> {a number} {a stream}` parametrized datapoint that allows to reference only a slice of the element set:
 ```
 winners are the first 10 users
 
 log is the last 10 outputs
 ```
+
+Only slicing operations that refer to future stream elements can be delayed.
+Slicing operations on underfilled buffers should return less elements than requested.
 
 ## Inheritance
 Inheritance is supported by accepting labels on classes. 
@@ -377,10 +412,6 @@ Hosted libraries can be used to protect intellectual property as well as an API 
 Refer to FFI.md for protocol details.
 
 # Appendix A: Standard preamble
-## Inputs
-An input is a stream that can be assigned by client applications or cliffhanger machine to external or internal output data stream of a compatible type.
-Marking a stream as an input allows cliffhanger applications consume push streams from external sources.
-Marking a value as an inout allows cliffhanger applications pull data from external sources.
 ## Outputs 
 An output is a stream that can be consumed by external targets, stored in a file, or forwarded over the network.
 Marking a stream as an output allows cliffhanger applications push data to external consumers.

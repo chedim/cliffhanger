@@ -1,5 +1,5 @@
 # Cliffhanger library communication protocol
-Cliffhanger library communication protocol (CLCP) is an application layer binary network protocol that is used by cliffhanger applications and libraries to share changes in their local data graphs.
+Cliffhanger library communication protocol (CLCP) is an application layer text network protocol that is used by cliffhanger applications and libraries to share changes in their local data graphs.
 Messages should be separated by CR ASCII code.
 
 ## Client authentication message
@@ -95,13 +95,13 @@ Examples:
 ### Acceptance messages
 Libraries must respond with an acceptance message for every accepted value:
 ```
-OK: accepted
++ accepted
 ```
 where:
 - accepted: SHA1 of accepted message
 
 Example:
 ```
-OK: 4257ff111e606143fb8250713bc09d30128412d5
++ 4257ff111e606143fb8250713bc09d30128412d5
 ```
 
