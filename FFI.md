@@ -60,6 +60,7 @@ Value message can be used:
 - by client to set library's input datapoint session value 
 - by library to notify a client about changes in output datapoint session values
 - by library to respond to a value request message
+- by library to respong to a value message
 ```
 = yaml
 
