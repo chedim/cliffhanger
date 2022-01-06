@@ -87,6 +87,19 @@ new message:
 
 ```
 
+### Value deletion message
+```
+- key
+```
+where key euther:
+- SHA1 of a datapoint name
+- datapoint name
+
+Example:
+```
+- attention span
+```
+
 ### Acceptance messages
 Libraries must respond with an acceptance message for every accepted value:
 ```
