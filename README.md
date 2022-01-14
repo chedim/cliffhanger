@@ -279,7 +279,7 @@ new value is 20; "{?new value + value}" is an output // outputs 'new value + val
 ## Collections and streams
 
 ### Collections
-Datapoints that have multiple acive definitions can be addressed either as by their singular name or by their plural name.
+Datapoints that have multiple acive definitions can be addressed either by their singular name or by their plural name.
 
 Singular datapoint name will address the latest active datapoint definition:
 ```
@@ -290,24 +290,26 @@ some value is a console output
 
 Plural datapoint name will address all collection members: 
 ```
-some value are users
-some value is a console output
-// outputs all users
+some values are:
+  1
+  2
+  3
+  4
+  5
+some values are console outputs
+// outputs 1 2 3 4 5
 ```
 
 ### Streams
-Cliffhanger streams represet an ordered set of values.
-Streams can be labeled as closed, in that case the stream acts as a collection.
-Opened streams are considered to be of an infinite size.
-Opened streams accessed using a floating window that keeps `{a stream} window size` items in the context.
-Default window size is stored as `default window size` and equals to 10 elements.
-Streams must always be referenced using plurals:
-`names are strings`
-Each stream value can be addressed by its position using the hash symbol:
-`name#3 is an output`
-`index is 10; name#{index} is an output`
+Cliffhanger streams are automatically created to satisfy streaming operations.
+Streams accessed using a floating window that keeps `{a stream} window size` history of assigned to the corresponding datapoint values in the context.
+The size of a particular stream window is calculated dynamically to satisfy all dependant definitions.
+Dynamically calculated size cannot exceed `max windox size` datapoint value.
+Requesting window size bigger than `max window size` results in an error.
+Streams are referenced using plurals:
+`values are random numbers`
 
-Using stream name in its singular form with `the` keyword returns the current value of the stream:
+Using stream name in its singular form with `the` keyword returns the latest value of the stream:
 `the name is an output`
 
 The current position of the stream can be referenced using the hashtag symbol with stream singular name:
@@ -316,15 +318,21 @@ The current position of the stream can be referenced using the hashtag symbol wi
 Values can be added onto a stream either by labeling them with stream name:
 `identifier is a name when no name`
 
+Or by filtering other streams:
+```
+name is the next user input after the user input is "--name " 
+```
+
 Streams can be merged with other streams using `are` keyword:
 `apples are oranges`
+In this example all new members of `apples` stream are also labeled as members of `oranges` stream.
 
 Some members of a stream can be assigned to other streams as well:
 `the identifier is a name when no name`
 
 ### Anchors
 Streams provide `<anchor> {a stream}` datapoints, where anchors are defined as either "the first" or "the last":
-These datapoints allow accessing the first and, in case of a closed stream, the last element of the stream:
+These datapoints allow accessing the first and, in case of a collection, the last elements:
 ```
 winner is the first runner
 
@@ -348,11 +356,9 @@ the winner is the last {the winning number}th banned user
 ``` 
 
 When indexed into the future, recalculation of dependant datapoints is delayed until the reference can be fulfilled.
-Indexing into the past creates a buffer on the stream.
-The size of the buffer is determined by the maximum requested index.
-The buffer size can be dynamic. 
-When buffer size increases, the new elements of the buffer are considered empty. 
-If an empty element is requested by a definition then dependant datapoint recalculation is delayed until the element is filled.
+Indexing into the past defines the size of the stream window.
+When window size increases, the new elements of the window are considered empty. 
+Definitions that request empty window elements are deffered until there is enough elements in the window.
 
 ### Collection filtering 
 Collections can be filtered using the `where` keyword:
