@@ -24,11 +24,12 @@ The next step would be to implement the language as couchbase service module, wh
 # Cliffhanger Environment
 Cliffhanger environment is a cluster of computational nodes capable of executing cliffhanger applications using shared classification tree and data graph.
 For example, a cliffhanger environment may consist of:
+- A single process
 - A central cluster in the Cloud that provides security, monitoring and analytics
 - A swarm of Edge computing clusters that process data linked to a specific location
 - A swarm of mobile and desktop devices, each providing UI services for the environment users
 
-By maintaining global classification and data graph across all these clusters, cliffhanger environments remove the boundaries between cloud, edge, frontend and backend.
+By maintaining linked classification and data graphs across all these clusters, cliffhanger environments remove the boundaries between cloud, edge, frontend and backend.
 
 ## Classification Tree
 Cliffhanger environment constructs its data graph around a classification tree.
@@ -60,8 +61,15 @@ the current user is an output
 
 # Cliffhanger applications
 Cliffhanger applications represent namespaced regions of cliffhanger environment's data graph.
-When an application is loaded, all unresolved classification tree references are mapped to the global environment classificatoin tree.
-This allows to avoid using `import` statements in the language :)
+When an application is loaded, all unresolved classification tree references are mapped to the global environment classification tree.
+
+## Application dependencies
+Cliffhanger applications may load definitions from http by marking datapoints as `dependency`:
+```
+a drone is:
+  a dependency
+  source is "http://github.com/example/drone"
+```
 
 # Mutational programming
 Mutational programming is performed by describing how data should mutate and conditions that trigger those mutations.
@@ -204,9 +212,9 @@ When any of datapoints referenced in a definition change their value the calcula
 ## Datapoint classes
 Every cliffhanger source file corresponds to a single datapoint class.
 Every datapoint class corresponds to a stream of instances of that class that can be accessed using the name of the class in its plural form.
-Class package name is constructed from the relative path of the file. 
-The name of the file becomes the name of the class.
-Classes are automatically located and loaded during runtime using paths from `CLIFF_LIB` environment variable.
+Datapoint path is constructed from the relative path of the file. 
+The name of the file becomes the name of the datapoint.
+Classes are automatically located and loaded during runtime using paths from `CLIFF_LIB` environment variable or `dependency` datapoints.
 This behavior can be overridden by redefining `class` datapoint.
 Cliffhanger classes are arranged into a directed graph that is separate from application's data graph and can be accessed using the `a` keyword.
 When a class is assigned to a datapoint it inherits all associated datapoint definitions of that class.
@@ -214,15 +222,14 @@ For example, basic class `number` defines associated datapoint `size`, which mak
 
 ### Basic classes
 Cliffhanger supports the following basic value classes:
-- digit - digits between 0 and `cliffhanger max digit` (default: 10)
 - number - signed integer numers
 - float - signed float numbers
-- fraction - an unsigned fractional number between 0 and 1
-- flag - a boolean value that is either true or false
+- boolean - a value that is either true or false
 - glyph - a number that represents a Unicode glyph
-- stream - a stream of values
+- string - a set of unicode glyphs
+- slice - a set of values
 
-Digit, number, and float classes provide `size` property as their sub-datapoint. 
+Number, and float classes provide `size` property as their sub-datapoint. 
 This property defines the allocated memory size for the value.
 The default value for this property can be set by redefining `<type name> default size` datapoint.
 
