@@ -13,7 +13,7 @@ This language was highly influenced by the following technologies and cultural a
 - the "Love is..." bubble gum.
 
 # Implementation
-For current implementation (still a WIP) check out this repo: https://github.com/chedim/cliff-go
+For current implementation (still a WIP) check out this repo: https://github.com/chedim/jcliff
 
 # About this document
 This document intended to be a roadmap for cliffhanger development.
