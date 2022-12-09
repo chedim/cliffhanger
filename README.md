@@ -1,5 +1,5 @@
 # cliffhanger
-Cliffhanger is a natural reactive stream processing and data definition distributed programming language. 
+Cliffhanger is a natural reactive stream processing and data definition distributed programming language for JVM. 
 
 # Acknowlegments
 This language was highly influenced by the following technologies and cultural artifacts:
