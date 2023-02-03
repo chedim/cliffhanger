@@ -13,419 +13,254 @@ This language was highly influenced by the following technologies and cultural a
 - the "Love is..." bubble gum.
 
 # Implementation
-For current implementation (still a WIP) check out this repo: https://github.com/chedim/jcliff
+The language is under (yet another) redesign, so no current implementations are available.
 
-# About this document
-This document intended to be a roadmap for cliffhanger development.
-I plan to implement POC of cliffhanger mutation machine using memcached to store application data model.
-This should allow non-distributed execution of CH applications as well as persisting application data with Couchbase.
-The next step would be to implement the language as couchbase service module, which should make possible running cliffhanger applications across a cluster of nodes.
+# Cliffhanger VM
+Cliffhanger applications are executed using a distributed virtual machine that loads cliffhanger definitions from a file system-like data sources and executes them against a distributed object tree.
 
-# Cliffhanger Environment
-Cliffhanger environment is a cluster of computational nodes capable of executing cliffhanger applications using shared classification tree and data graph.
-For example, a cliffhanger environment may consist of:
-- A single process
-- A central cluster in the Cloud that provides security, monitoring and analytics
-- A swarm of Edge computing clusters that process data linked to a specific location
-- A swarm of mobile and desktop devices, each providing UI services for the environment users
+## Data Tree 
+Cliffhanger VM maintains a ditributed tree of scalar values.
+Tree values can be referenced by their paths using forward slash as path separator:
+`/users/01/login`
+`/current/user/email`
+...
 
-By maintaining linked classification and data graphs across all these clusters, cliffhanger environments remove the boundaries between cloud, edge, frontend and backend.
+### Distributed Data Trees
+A Data Tree becomes distributed when a peering connection is established between two or more cliffhanger nodes.
+In such a situation, the branches of the Data Tree may be assigned to different nodes.
 
-## Classification Tree
-Cliffhanger environment constructs its data graph around a classification tree.
-Each node in the tree specifies a sub-class of its parent node.
-Every class contains a set of field and label definitions that define mutation rules for instances of the class.
-The classic inheritance relation exists between parent classes and their sub-classes.
-For example, the node `animal` may contain a sub-node `cat`, which will inherit all rules defined on the `animal` class.
-The tree can be addressed using the `a/an` keyword: `a cat`. 
-The tree is traversed by `a` references in reversed direction (down from leaves to the root): `a cat animal` will address subtype `cat` of type `animal`.
-External classification tree definitions can be loaded into environment from remote or local libraries.
+### Global Branch
+All paths located under the `/global` branch are replicated to all nodes running the Cliffhanger VM machine.
 
-## Entity graph
-Entity graph is the part of environment data graph that is constructed from classification tree.
-The graph can be addressed using `the` keyword: `the cat`
-The graph is traversed by `the` referenced in forward direction (up from the root to leaves): `the cat name`
-The nodes of entity graph represent data variables. 
-Edges between those nodes represent data ownership: `the cat name` represents entity `name` owned by an entity classified as `a cat`
+### VM Information Branch
+All information about the cliffhanger VM is located under the `/global/vm` branch.
 
-## Classification labels
-Classification labels are used to create edges from entity graph to the classification tree.
-Labels added using `is` operator: `the animal is a cat`.
-When a label is added to the entity, that entity is added into the corresponding entity collection and is sent to collection's processing unit(s).
+### Node Information Branch
+All information about the current Cliffhanger node is located under the `/global/vm/nodes/<NODE_ID>` branch.
+The id of the current node is available to triggers as `$NODE_ID` environment variable.
 
-### Output Datapoints 
-Output datapoints can be created by libraries to expose their state:
+## Trigger Layers
+The VM loads every cliffhanger application into a separate trigger layer. 
+
+## Trigger events
+When a new value is written onto the Data Tree, VM will execute associated with the path of the value triggers from all loaded and active layers.
+Data Tree change events are propagated both horizontally through loaded layers in reverse order of layer loading and vertically through the path of the changed value from the value to the root of the Data Tree.
+
+## Data Triggers
+Data triggers are the main building block of Cliffhanger applications. 
+A trigger consists of an optional trigger condition and a list of mutations to be performed when the trigger is activated.
+Every time the value to which a trigger is attached changes, the new value is evalueted against the trigger condition. 
+When the trigger condition evaluates to a truthy value, the trigger is activated and its mutations are executed.
+Inside of a layer, all triggers are activated in the direct definition order.
+
+### Value Triggers
+Value triggers are defined in `*.ct` files and attach directly to a value on the Data Tree. 
+These triggers are mapped onto the Data Tree according to the path of the file in which they are defined.
+
+### Tree Triggers
+Tree Triggers are defined in files named `__.ct`.
+They attach to Data Tree paths according to the path to the folder in which they are defined and are evaluated for all changes that happen under that path.
+
+### Trigger Conditions
+Trigger conditions can be used to activate triggers depending on the state of Cliffhanger VM.
+Trigger conditions are defined using `when <condition>:` statements that must start at the beginning of a new line and end with a new line character.
+Immediately succeding trigger conditions are merged into a single trigger condition using logical `OR` operator so, the following:
 ```
-the current user is an output
+WHEN [ "$NEW" -eq 1 ]:
+WHEN [ "$NEW" -eq -1 ]:
+  ... list of Mutations
 ```
-
-# Cliffhanger applications
-Cliffhanger applications represent namespaced regions of cliffhanger environment's data graph.
-When an application is loaded, all unresolved classification tree references are mapped to the global environment classification tree.
-
-## Application dependencies
-Cliffhanger applications may load definitions from http by marking datapoints as `dependency`:
+is equal to:
 ```
-a drone is:
-  a dependency
-  source is "http://github.com/example/drone"
-```
-
-# Mutational programming
-Mutational programming is performed by describing how data should mutate and conditions that trigger those mutations.
-In its purest form mutational programming is done using `when` operator that takes a condition and a set of variables and values that should be assigned to them when the condition evaluates to `true`.
-This is very similar to reactional (aka event-driven) programming which uses a similar `when` operator to describe a set of instructions to execute.
-Mutational programming, however, embraces declarative over imperative programming.
-Cliffhanger supports mutational programming with two mechanisms -- dynamic definition switching and cascading reevaluations.
-
-## Cascading Reevaluations
-Cliffhanger applications developed around datapoints -- a special kind of variables. 
-By default, datapoint values are calculated from developer-provided data definitions.
-If a definition references another datapoint then the definition is said to depend on that datapoint.
-Whenever a datapoint value changes all its dependant definitions as well as their dependant definitions are marked for reevaluation.
-Definitions are re-evaluated lazily only when their value is requested by any of their dependant definitions.
-
-## Static datapoints
-Datapoints that are not accessed via `the` operator are considered static.
-Static datapoint values are calculated immediately after the application starts and automatically reevaluated every time
-their dependencies change.  
-
-## Persisted datapoints
-To persist datapoint values across application startups developers should label them as persisted, for example: 
-`users are persisted`.
-
-## Dynamic Definition Switching
-Cliffhanger datapoint definitions may be enabled and disabled based on the value of an optional control datapoint.
-Whenever the control datapoint evaluates to `false` the controlled definition becomes disabled and is excluded from application's data model.
-
-# Language Overview
-Striving to be an easy to read language, Cliffhanger uses terms from English language to describe provided langage elements.
-
-## Statements
-Example file -- hello.cliff:
-```
-hello is an application
-
-name prompt is "Enter your name: ";
-name is an input text line after name prompt is an output
-
-output is:
-  name prompt
-  when name is set: "Hello, {name}!"
-  before this is unloaded:
-    when name is set: "Bye, {name}!"
-    else: "Bye, anonymous!"
+WHEN [ "$NEW" -eq 1 ] || [ "$NEW" -eq -1 ]:
+  ... list of Mutations
 ```
 
-Cliffhanger statements are used to define datapoints.
-Statements always start at column 0 and end with two newline symbols (an empty line) or the semicolon symbol after which another statement can be started on the same or the next line.
-
-A minimal statement must contain at least a datapoint name and creates a datapoint with constant value `true`:
-`z`
-
-optional definition sections may be included in the statement to define either the datapoint value: 
-`x is 20`, 
-or its class/label:
-`y is a number`
-
-Each definition section may include optional condition sub-section that defines definition's control datapoint.
-If no condition sub-section is provided then the definition is considered active after all other definitions fail.
-To calcualte datapoiont's value, Cliffhanger always uses the first value definition section (in the order they appear in the source code) that is active and ignores other definitions without checking their control point values.
-If at least one definition section is present but none of the definitions is active then the datapoint is not defined and evaluates to false.
-
-## Words
-In cliffhanger source code any set of symbols that are not whitespace, reserved keywords and literals or punctuation characters constitutes a word.
-If a word with forbidden name needs to be defined then its name needs to be escaped: `event \when is a date`.
-Words that include non-alphabetical symbols must be explicitly defined either in preamble or by the application as aliases for alphabetical words.
-Alphabetical words don't need to be defined. 
-
-### Word Normalization
-Cliffanger automatically normalizes all words using common English language dictionary. 
-Developers may extend or overwrite the default dictionary:
-`publics is a plural of public`
-`be is a form of is`
-etc.
-
-## Phrases
-Cliffhanger uses semantic contexts to group words into phrases.
-Words are collected into a phrase of corresponding to the current context type until a context changing keyword is met.
-Collected phrases and their types are then used as cliffhanger definitions.
-
-## Semantic Contexts
-Cliffhanger compiler/evaluator keeps track of semantic contexts which define specific behavior for phrases.
-
-### Naming Context
-Naming context is the starting context for every statement.
-Naming context phrases are treated as paths on the application's data graph.
-For example, phrase `current user name` will refer to datapoint `name` associated with datapoint `user` under datapoint `current`.
-
-### Request Context
-Request context is entered into with `a`/`an` _request keyword_ from a naming context.
-Request context collects a datapoint name.
-A value is then requested from the datapoint with collected name and used as the datapoint definition.
-
-### Definition context
-Definition context is entered into with `is`/`are` _defining keyword_ from a naming context.
-
-### Condition context
-Condition context is entered into with `when`/`before` _condition keywords_ either from naming or definitition context and provides control point definitions.
-Condition context may be exited into definition context using a semicolon.
-
-### Related mutation context
-Related mutation context is entered into with `after` _related mutation keyword_ either from naming or definition context and provides a related definition that should be applied to the application data tree _before_ the main definition is applied.
-
-... many more contexts... maybe this is not the right term and/or way to describe them?
-
-## Definition branching
-Semicolon followed by newline (':\n') can be used in definiton context to provide multiple alternative branching definitions.
-Each branching definition then need to start with a whitespace offset:
-
+Nested triger conditions are merged with parent conditions using logical `AND` operator:
 ```
-today is a weekend:
-  when today is saturday
-  when today is sunday
+WHEN [ "$NEW" -eq 1 ]:
+  WHEN [ "$OLD" -eq 0 ]:
+    ... list of Mutations #1
+  WHEN [ "$OLD" -eq -1 ]:
+    ... list of Mutations #2
+```
+is equal to:
+```
+WHEN [ "$NEW" -eq 1 ] && [ "$OLD" -eq 0 ]:
+  ... list of Mutations #1 
+WHEN [ "$NEW" -eq 1 ] && [ "$OLD" -eq -1 ]:
+  ... list of Mutations #2
+```
+Empty conditions at any level are still merged via `OR`, so:
+```
+WHEN [ "$NEW" -eq 1 ]:
+  WHEN [ "$OLD" -eq 0 ]:
+  WHEN [ "$OLD" -eq -1 ]:
+    ... list of Mutations
+```
+is equal to: 
+```
+WHEN [ "$NEW" -eq 1 ] && ( [ "$OLD" -eq 0 ] || [ "$OLD" -eq -1 ]):
+  ... list of Mutations
 ```
 
-Only one value definition in a branching set can be active at a time.
-If none of the definitions is active then the datapoint is undefined and evaluates to false unless it has other active definitions.
-
-## Statement grouping
-Statements that start with the same set of words can be grouped into one statement using the semicolon followed by new line:
+### Trigger Mutations
+Mutations are defined using HTTP request protocol with separation of request headers and body done via adding whitespace offset to the body lines:
 ```
-user:
-  name is "Alfred"
-  age is 24
-  email is "alfred@alfred.com"
-  group:
-    is a group
-    name is "admins"
+WHEN [ "$NEW" -eq 1 ]:
+  POST https://example.com/example/address
+  Content-Type: text/plain
+    echo "$NEW"
 ```
+Every mutation definition in a mutation list must have the same whitespace prefix.
+Every body line inside a mutation definition must have the same whitespace prefix.
 
-## Datapoints
-Cliffhanger datapoints construct a data graph that can react to external signals.
+Mutations must be separated from each other using an empty line:
+```
+WHEN [ "$NEW" -eq 1 ]:
+  POST /data/tree/path
+    echo "$NEW" | grep 'name'
 
-### Datapoint Values
-When a datapoint is referenced in a definition, cliffhanger machine first looks for the current datapoint value in the application context.
-If requested datapoint's value hasn't been previously calculated and is absent from the context then datapoint's active definition is used to calculate it and add it into the context, after which it can be used in the definition.
-When any of datapoints referenced in a definition change their value the calculated value is removed from the context, which should trigger value recalculation the next time the datapoint value is requested.
+  POST https://example.com/example/address
+  Content-Type: text/plain
+    echo "$NEW"
 
-## Datapoint classes
-Every cliffhanger source file corresponds to a single datapoint class.
-Every datapoint class corresponds to a stream of instances of that class that can be accessed using the name of the class in its plural form.
-Datapoint path is constructed from the relative path of the file. 
-The name of the file becomes the name of the datapoint.
-Classes are automatically located and loaded during runtime using paths from `CLIFF_LIB` environment variable or `dependency` datapoints.
-This behavior can be overridden by redefining `class` datapoint.
-Cliffhanger classes are arranged into a directed graph that is separate from application's data graph and can be accessed using the `a` keyword.
-When a class is assigned to a datapoint it inherits all associated datapoint definitions of that class.
-For example, basic class `number` defines associated datapoint `size`, which makes all number have a `size` datapoint that (unless it was overriden for that specific object or class) uses the same definitions as `number size` associated with them.
+  DELETE fs://some/file/path/${OLD}
 
-### Basic classes
-Cliffhanger supports the following basic value classes:
-- number - signed integer numers
-- float - signed float numbers
-- boolean - a value that is either true or false
-- glyph - a number that represents a Unicode glyph
-- string - a set of unicode glyphs
-- slice - a set of values
-
-Number, and float classes provide `size` property as their sub-datapoint. 
-This property defines the allocated memory size for the value.
-The default value for this property can be set by redefining `<type name> default size` datapoint.
-
-### Custom classes
-Every cliffhanger source file defines a custom datapoint class with the name of that file.
-The file class can be referenced with its name, instance of the class is referenced with `a/an` keyword.
-Every class automatically has access to 
-All datapoints explicitly defined under the file class are public.
-All datapoints defined in a source file except for datapoints defined under `static` and the name of the file are instance-scoped.
-For example, example.cliff:
-``` 
-an example created is a number of size 4     // a public datapoint
-
-initialized                                   // a private boolean datapoint
-
-example goal is "to learn cliff"              // a public static datapoint
-
-static target is "to write an app a day"      // a private static datapoint
-
-example target is static target               // a public static alias to a private static datapoint
-
+  PUT s3://bucket/path
+    date
 ```
 
-### Undefined datapoint capturing
-Access to undefined sub-datapoints can be captured using special `?lookup` datapoint.
-The `?query` datapoint can be used in `?lookup` datapoint definition to access the name of the requested sub-datapoint.
+Every HTTP header definition is evaluated as a BashL string using `/bash -c echo <definiiton>`.
+Body definitions are evaluated as bash scripts.
 
-### Datapoint value substitution
-Datapoint values can be substituted into the current context by wrapping datapoint names in figure brackets:
+### Access Guards
+Access Guards are executed every time a value is read from the Data Tree and defined similarly to triggers but differ from them because they define HTTP responses instead of HTTP requests:
 ```
-value is 20
-
-reference is "value"
-
-{reference} is an output // outputs '20'
-
+WHEN [ -z "${HEADERS[Authorization]}" ]:
+  HTTP 401 Unauthorized
+    echo "You are not authorized to perform this operation."
+    echo "(Missing Authorization header)"
 ```
 
-In strings, however, the value of the named datapoint will be substituted instead:
+Access gurads can also be used to transform the response values:
 ```
-"{reference}" is an output // outputs 'value'
-```
-```
-"{{reference}}" is an output // outputs '20'
-```
-
-### Debug substitutions
-`{?datapoint}` should substitute the current definition of the datapoint:
-```
-value is 10; "{?value}" is an output // outputs 'value is 10'
-new value is 20; "{?new value + value}" is an output // outputs 'new value + value is 20'
+WHEN true:
+  HTTP 200 OK
+    echo "transformed value: $NEW"
 ```
 
-## Collections and streams
-
-### Collections
-Datapoints that have multiple acive definitions can be addressed either by their singular name or by their plural name.
-
-Singular datapoint name will address the latest active datapoint definition:
+#### Redirects
+Redirects are Access Guards defined using the `REDIRECT` keyword that results in either delegating the request to another path on the same node or sending `HTTP 301 Moved Permanently` response to the client.
+For example,
 ```
-some value is the user
-some value is a console output
-// outputs the latest user name
+WHEN true:
+  REDIRECT /info/status
 ```
+will redirect all requests to the value located at `/info/status` address.
 
-Plural datapoint name will address all collection members: 
+### Trigger Variables
+The following variables are available to all triggers:
+| name | description |
+| - | - |
+| NEW | contains the value to be written onto the Data Tree |
+| OLD | contains the previous value that will be overridden by this update |
+| METHOD | contains the method used to submit the new value |
+| URL | contains the path to the value to be changed |
+| HEADERS | array of headers submitted with the request |
+| FIELD | contains the first element of the relative path from the trigger to the changed value |
+
+### Querying the Data Tree
+Trigger scripts can query the data tree by invoking the `@` function with the path of requested value as its argument.
+Truthiness of a value can be checked using the `@+` function:
+Examples:
 ```
-some values are:
-  1
-  2
-  3
-  4
-  5
-some values are console outputs
-// outputs 1 2 3 4 5
-```
+WHEN [ "$(@ /system/online)" -eq 1 ]:
+  ...
 
-### Streams
-Cliffhanger streams are automatically created to satisfy streaming operations.
-Streams accessed using a floating window that keeps `{a stream} window size` history of assigned to the corresponding datapoint values in the context.
-The size of a particular stream window is calculated dynamically to satisfy all dependant definitions.
-Dynamically calculated size cannot exceed `max windox size` datapoint value.
-Requesting window size bigger than `max window size` results in an error.
-Streams are referenced using plurals:
-`values are random numbers`
-
-Using stream name in its singular form with `the` keyword returns the latest value of the stream:
-`the name is an output`
-
-The current position of the stream can be referenced using the hashtag symbol with stream singular name:
-`"Name number {name#} is {name}" is an output`
-
-Values can be added onto a stream either by labeling them with stream name:
-`identifier is a name when no name`
-
-Or by filtering other streams:
-```
-name is the next user input after the user input is "--name " 
+WHEN @+ https://example.com/some/flag:
+  ...
 ```
 
-Streams can be merged with other streams using `are` keyword:
-`apples are oranges`
-In this example all new members of `apples` stream are also labeled as members of `oranges` stream.
+## Vm Peering
+VM peering is the mechanism by which two cliffhanger VMs share the same Data Tree.
+When a peering VM joins another (master) VM, it triggers Data Tree rebalancing operation during which some of the elements of the master VM Data Tree are transferred together with attached to them triggers and guards onto the joining VM and both master and peering VM become nodes of a distributed Cliffhanger VM.
 
-Some members of a stream can be assigned to other streams as well:
-`the identifier is a name when no name`
+When a node of a distributed VM is requested to perform an operation on a part of the distributed Data Tree that is assigned to another node, it will redirect the request to the appropriate node using `HTTP 301 Moved Permanently` response. 
+To do so, all nodes maintain a list of mappings that is available in the Data Tree under the `/global/vm/mappings` path prefix. 
 
-### Anchors
-Streams provide `<anchor> {a stream}` datapoints, where anchors are defined as either "the first" or "the last":
-These datapoints allow accessing the first and, in case of a collection, the last elements:
+### Tree rebalancing
+Tree rebalancing is performed by participating nodes transparently by reassigning tree branches based on their computational complexity.
+To do this, every node calculates computational complexity for each mapped to it tree path based on:
+- percentage of memory occupied by the corresponding tree branch
+- percentage of CPU time spent on serving the corresponding tree branch
+
+Node's available computational power is also calculated and periodically updated by timing a sample computational task. 
+This available computational power is than stored as `/global/vm/nodes/<NODE_ID>/power` value.
+This information is then used to normalize calculated computational complexity across the cluster level.
+Normalized calculational complexities are then published by the node by updating the `/global/vm/mappings/<MAPPING_ID>/complexity` value.
+
+Each peering node can be configured to maintain a specific computational power usage levels.
+When a node detects that it uses too much or too little of computational power, it attempts to either shed some of its mappings or gain more of them.
+
+### Tree mappings
+Tree mappings are used by participating nodes to determine which nodes serve which part of the Data Tree.
+All changes to a tree mapping must either be initiated by the mapped node or submitted onto it and replicated by the mapped node to all other nodes.
+When resolving tree paths with mappings, the most specific mapping should be selected by the requesting node: a mapping of `/data/users/01` should be picked over the mapping of `/data`.
+
+
+#### Mapping shedding
+To shed a mapping, a node first decides which specific mapping needs to be shed:
+- If only single mapping is maintained by the node, then it attempts to split it into two mappings.
+  The node attempts to size one of the mappings according to the amount of computational complexity it wants to shed and then selects that mapping to be shed.
+- When more than a single mapping is maintained by the node, the node sorts mappings by their complexity and then picks the first mapping that is bigger than desired complexity amount.
+
+The picked mapping is then marked by writing "SHEDDING" into `/global/vm/mappings/<MAPPING_ID>/status` value.
+
+#### Mapping gaining
+To gain a mapping, the node selects all mappings in the "SHEDDING" status and then selects the last mapping that is smaller than the desired complexity gain.
+Then it sends an HTTP POST request to the node that wants to shed the mapping that updates the `/global/vm/mappings/<MAPPING_ID>` path with the following values:
+```yaml
+status: MOVING
+node: <GAINING_NODE_ID>
 ```
-winner is the first runner
+The request to move the mapping MUST also contain a transaction ID in the `X-Transaction` header.
+The gaining node then replicates this request to all participating nodes except the gaining node and responds with `HTTP 202 Accepted` when replication succeds.
+When a mapping is in the `MOVING` state, all requests to the corresponding tree branch by participating nodes MUST be deffered until the mapping changes its status to `ACTIVE`.
+During this period the shedding and gaining nodes MUST respond with yaml-encoded mapping value and `503 Service Unavailable` responses to any requests to the associated with the mapping tree branch.
 
-sender is the last message author
+When the shedding node is ready to perform the transfer, it sends a multi-part HTTP POST request with the same `X-Transaction` header as in the originating transfer request.
+The response body should contain yaml-encoded value of the tree branch and its trigger and guard definitions as its parts.
+Upon successfuly receiving the branch value, gaining node responds with `HTTP 202 Accepted` status.
+
+When the gaining node is ready to start serving the branch, it updates the `/global/vm/mappings/<MAPPING_ID>/status` value to `ACTIVE` and replicates this change to all other participating nodes by sending HTTP POST requests to every node.
+
+#### Mapping Locking
+System administrators may create locked mappings by setting `/global/vm/mappings/<MAPPING_ID>/locked` path to a truthy value.
+Locked mappings cannot be rebalanced from the node onto which they map.
+For example, the path `/current/user/phone/screen` could be locked onto the node that represents user's phone, etc.
+
+## Internal Communication
 ```
-
-### Indexing
-Collections can be indexed by prefixing them with an index phrase:
-```
-some value is the 3rd user
-some value is the 30th message
-some value is the last 5th message
-// etc...
-```
-
-Streams can be indexed both into the future and into the past:
-```
-the winner is the next 3rd registered user
-the winner is the last 5th online user
-the winner is the last {the winning number}th banned user
-``` 
-
-When indexed into the future, recalculation of dependant datapoints is delayed until the reference can be fulfilled.
-Indexing into the past defines the size of the stream window.
-When window size increases, the new elements of the window are considered empty. 
-Definitions that request empty window elements are deffered until there is enough elements in the window.
-
-### Collection filtering 
-Collections can be filtered using the `where` keyword:
-```
-registrations are users where the user is registered
-
-jobs are tasks where current time - the task expiration > the last task recalculation time
-
-displayed messages are the last 10 messages where folder = displayed folder
-```
-
-### Slices
-Streams and collections also provide `<anchor> {a number} {a stream}` parametrized datapoint that allows to reference only a slice of the element set:
-```
-winners are the first 10 users
-
-log is the last 10 outputs
-```
-
-Only slicing operations that refer to future stream elements can be delayed.
-Slicing operations on underfilled buffers should return less elements than requested.
-
-## Inheritance
-Inheritance is supported by accepting labels on classes. 
-Multiple inheritance is allowed.
-
-animal.cliff:
-```
-an animal name is a string
-
-an animal kind is a string
-
-```
-cat.cliff:
-```
-cat is an animal
-
-a cat kind is "cat"
-
+TODO: describe node properties that store information about supported by the node communication methods.
+IDEA: use node-generated triggers for communication?
 ```
 
-# Data integrity validations
-`must [not] be` keyword can be used to enforce data integrity validations:
+## External Communication
+### Sending Data to a Cliffhanger VM
+A cliffhanger VM accepts external data changes as HTTP POST requests submitted to the VM Data Api port.
+Request paths are mapped directly onto the Data Tree.
+Bulk value updates can be prformed by submitting requests with `Content-type` of either `application/json` or `application/yaml`.
 
+### Requesting Data from a Cliffhanger VM
+VM Data Tree values can be requested using HTTP GET requests submitted to the VM Data Api port.
+All data responses are yaml-formatted.
+
+### Pushing data out of a Cliffhanger VM
+The nature of the language allows to push data to external systems directly from trigger mutations:
 ```
-a user name length must be < 19
-the user email must not be false when a user is verified
-a user must be verified before it is online
+WHEN true:
+  POST https://some-other-system.com/some/path
+  Authentication: Bearer "$(@ /external/some-other-system/auth)"
+    echo "$NEW"
 ```
-
-A violation of `must` statements at any time will cause the application to print the violated statement and mutation trace to stderr and exit with errror code 1.
-
-# Inter-library communication and FFI
-Cliffhanger libraries are loaded into separate cliffhanger processes that communicate changes in their data graphs using network sockets.
-This allows running cliffhanger applications using computational clusters distributed across LAN as well as the Internet.
-Hosted libraries can be used to protect intellectual property as well as an API for commercial services.
-Refer to FFI.md for protocol details.
-
-# Appendix A: Standard preamble
-## Outputs 
-An output is a stream that can be consumed by external targets, stored in a file, or forwarded over the network.
-Marking a stream as an output allows cliffhanger applications push data to external consumers.
-Marking a value datapoint as an output allows cliffhanger applications expose endpoints that can be pulled by external clients.
