@@ -1,0 +1,9 @@
+WHEN $THIS = /secret and /attempts > 0:
+  /shell/output += "Correct!"
+  /global/vm/exit = 0
+  /attempts -= 1
+ELSE WHEN /attempts = 0:
+  /shell/output += "Nope. You lost."
+  /global/vm/exit = 1
+ELSE:
+  /shell/read/line = "Try again: "

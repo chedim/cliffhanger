@@ -1,0 +1,4 @@
+WHEN vm/online:
+  /secret = $(($RANDOM % 10))
+  /guesses = 3
+  /shell/read/line = "Guess a number: "
