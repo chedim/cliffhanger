@@ -1,5 +1,21 @@
 # cliffhanger
-Cliffhanger is a distributed self-balancing clustered graph database and language for programming micro-service swarms.
+Cliffhanger is a distributed graph operation language for programming microservice swarms.
+
+## Fibonacchi example
+File `<project_root>/fibonacchi.ct` that could handle HTTP requests to `/fibonacci/<number>` paths:
+
+```
+-- usage:
+-- GET /fibonacchi/10
+
+WHEN name($FIELD) = 1:
+  = 1
+ELSE:
+  = $(( \
+      $( @ ./$(( $FIELD - 1 )) ) + \
+      $( @ ./$(( $FIELD - 2 )) ) \
+    )
+```
 
 # Acknowlegments
 This language was highly influenced by the following technologies and cultural artifacts:
@@ -29,25 +45,6 @@ The default url schema and domain refer to the Data tree and supports querying u
 ...
 
 Note: in the future, other schemas (for example, `fs:`) may support XPath as well.
-
-### Querying the Data Tree
-Examples:
-```
--- this is a comment
-
--- this trigger will activate when /system/online value is present:
-WHEN /system/online:
-  ...
-
--- this trigger will work if sending a GET request to the given URL results in 200 OK:
-WHEN https://example.com/some/flag:
-  ...
-
--- when a file is executable
-WHEN shell:[ -x usr/bin/cpu-info ]:
-  POST $NODE/cpu-info
-    /usr/bin/cpu-info
-```
 
 ### Distributed Data Trees
 A Data Tree becomes distributed when a peering connection is established between two or more cliffhanger nodes.
@@ -84,18 +81,26 @@ These triggers are mapped onto the Data Tree according to the path and name (exc
 
 ### Trigger Conditions
 Trigger conditions can be used to activate triggers depending on the state of Cliffhanger VM.
-Trigger conditions are defined using `when <condition>:` statements with conditions written in XPath. 
+Trigger conditions are defined using `when-else when-else` statements with conditions written in XPath. 
 Trigger conditions must start at the beginning of a new line and end with a new line character.
 Immediately succeding trigger conditions are merged into a single trigger condition using logical `OR` operator so, the following:
 ```
 WHEN $THIS = 1:
 WHEN $THIS =-1:
   ... list of Mutations
+ELSE WHEN $THIS = 0:
+  ... some other Mutations
+ELSE:
+  .. fallback mutations
 ```
 is equal to:
 ```
 WHEN $THIS = (1, -1):
   ... list of Mutations
+ELSE WHEN $THIS = 0:
+  ... some other mutations
+ELSE:
+  .. fallback mutations
 ```
 
 Nested triger conditions are merged with parent conditions using logical `AND` operator:
@@ -127,6 +132,17 @@ WHEN $THIS = 1 and ($OLD = 0 or $OLD = -1):
   ... list of Mutations
 ```
 
+#### ALWAYS shorthand
+```
+ALWAYS:
+  ...
+```
+expands to:
+```
+WHEN true:
+  ...
+```
+
 ### Trigger Mutations
 Mutations are defined using HTTP request protocol with separation of request headers and body done via adding whitespace offset to the body lines:
 ```
@@ -149,13 +165,27 @@ WHEN $THIS = 1:
     echo "$(@ $THIS)"
 
   DELETE fs://some/file/path/$(@ $OLD)
+
   PUT fs://some/file/path/$(@ $OLD)
-    attributes: a+r
+  attributes: a+r
       date
 ```
 
 Every HTTP header definition is evaluated as a BashL string using `/bash -c echo <definiiton>`.
 Body definitions are evaluated as bash scripts.
+
+#### POST mutation short form:
+POST mutations can be shorted to an assignment expression:
+```
+ALWAYS:
+  /path = value
+```
+equals to:
+```
+ALWAYS:
+  POST /path
+    echo "value"
+```
 
 ### Access Guards
 Access Guards are executed every time a value is read from the Data Tree and defined similarly to triggers but differ from them because they define HTTP responses instead of HTTP requests:
@@ -169,16 +199,29 @@ WHEN not($REQUEST/header/Authorization):
 
 Access gurads can also be used to transform the response values:
 ```
-WHEN true:
+ALWAYS:
   HTTP 200 OK
     echo "transformed value: $THIS"
+```
+
+#### 200 OK shorthand
+200 OK access guards can be shortened to a no-path assignment statement:
+```
+ALWAYS:
+  = value
+```
+expands to:
+```
+ALWAYS:
+  HTTP 200 OK
+    echo "value"
 ```
 
 #### Redirects
 Redirects are Access Guards defined using the `REDIRECT` keyword that results in either delegating the request to another path on the same node or sending `HTTP 301 Moved Permanently` response to the client.
 For example,
 ```
-WHEN true:
+ALWAYS:
   REDIRECT /info/status
 ```
 will redirect all requests to the value located at `/info/status` address.
@@ -270,7 +313,7 @@ All data responses are yaml-formatted.
 ### Pushing data out of a Cliffhanger VM
 The nature of the language allows to push data to external systems directly from trigger mutations:
 ```
-WHEN true:
+ALWAYS:
   POST https://some-other-system.com/some/path
   Authentication: Bearer "$(@ /external/some-other-system/auth)"
     echo "$THIS"

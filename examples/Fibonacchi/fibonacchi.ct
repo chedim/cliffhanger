@@ -1,0 +1,9 @@
+-- usage:
+-- GET /fibonacchi/10
+WHEN name($FIELD) = 1:
+  = 1
+ELSE:
+  = $(( \
+      $( @ ./$(( $FIELD - 1 )) ) + \
+      $( @ ./$(( $FIELD - 2 )) ) \
+    )
