@@ -1,5 +1,5 @@
 # cliffhanger
-Cliffhanger is a bash-like reactive language for programming over a mesh of http services optionally linked into a self-rebalancing clusters that maintain distributed data trees. 
+Cliffhanger is a distributed self-balancing clustered graph database and language for programming micro-service swarms.
 
 # Acknowlegments
 This language was highly influenced by the following technologies and cultural artifacts:
@@ -19,11 +19,35 @@ The language is under (yet another) redesign, so no current implementations are 
 Cliffhanger applications are executed using a distributed virtual machine that loads cliffhanger definitions from a file system-like data sources and executes them against a distributed object tree.
 
 ## Data Tree 
-Cliffhanger VM maintains a ditributed tree of scalar values.
-Tree values can be referenced by their paths using forward slash as path separator:
-`/users/01/login`
+Cliffhanger VM maintains a tree of scalar values.
+Tree values can be referenced by their URLs.
+The default url schema and domain refer to the Data tree and supports querying using XPath:
+`/user/01/username`
 `/current/user/email`
+`/user/*[active]`
+`/user/*[groups/admin]`
 ...
+
+Note: in the future, other schemas (for example, `fs:`) may support XPath as well.
+
+### Querying the Data Tree
+Examples:
+```
+-- this is a comment
+
+-- this trigger will activate when /system/online value is present:
+WHEN /system/online:
+  ...
+
+-- this trigger will work if sending a GET request to the given URL results in 200 OK:
+WHEN https://example.com/some/flag:
+  ...
+
+-- when a file is executable
+WHEN shell:[ -x usr/bin/cpu-info ]:
+  POST $NODE/cpu-info
+    /usr/bin/cpu-info
+```
 
 ### Distributed Data Trees
 A Data Tree becomes distributed when a peering connection is established between two or more cliffhanger nodes.
@@ -37,7 +61,8 @@ All information about the cliffhanger VM is located under the `/global/vm` branc
 
 ### Node Information Branch
 All information about the current Cliffhanger node is located under the `/global/vm/nodes/<NODE_ID>` branch.
-The id of the current node is available to triggers as `$NODE_ID` environment variable.
+A reference to the current node's information branch is alvays accessible as `$NODE` variable.
+Any changes under a node information branch MUST be submitted to and processed and replicated by the corresponding node.
 
 ## Trigger Layers
 The VM loads every cliffhanger application into a separate trigger layer. 
@@ -47,88 +72,86 @@ When a new value is written onto the Data Tree, VM will execute associated with 
 Data Tree change events are propagated both horizontally through loaded layers in reverse order of layer loading and vertically through the path of the changed value from the value to the root of the Data Tree.
 
 ## Data Triggers
-Data triggers are the main building block of Cliffhanger applications. 
+Data triggers are the main building blocks of Cliffhanger applications. 
 A trigger consists of an optional trigger condition and a list of mutations to be performed when the trigger is activated.
-Every time the value to which a trigger is attached changes, the new value is evalueted against the trigger condition. 
+Every time the sub-tree under the address to which a trigger is attached changes, the new sub-tree value is evaluated against the trigger condition. 
 When the trigger condition evaluates to a truthy value, the trigger is activated and its mutations are executed.
 Inside of a layer, all triggers are activated in the direct definition order.
 
 ### Value Triggers
 Value triggers are defined in `*.ct` files and attach directly to a value on the Data Tree. 
-These triggers are mapped onto the Data Tree according to the path of the file in which they are defined.
-
-### Tree Triggers
-Tree Triggers are defined in files named `__.ct`.
-They attach to Data Tree paths according to the path to the folder in which they are defined and are evaluated for all changes that happen under that path.
+These triggers are mapped onto the Data Tree according to the path and name (excluding the extension) of the file in which they are defined.
 
 ### Trigger Conditions
 Trigger conditions can be used to activate triggers depending on the state of Cliffhanger VM.
-Trigger conditions are defined using `when <condition>:` statements that must start at the beginning of a new line and end with a new line character.
+Trigger conditions are defined using `when <condition>:` statements with conditions written in XPath. 
+Trigger conditions must start at the beginning of a new line and end with a new line character.
 Immediately succeding trigger conditions are merged into a single trigger condition using logical `OR` operator so, the following:
 ```
-WHEN [ "$NEW" -eq 1 ]:
-WHEN [ "$NEW" -eq -1 ]:
+WHEN $THIS = 1:
+WHEN $THIS =-1:
   ... list of Mutations
 ```
 is equal to:
 ```
-WHEN [ "$NEW" -eq 1 ] || [ "$NEW" -eq -1 ]:
+WHEN $THIS = (1, -1):
   ... list of Mutations
 ```
 
 Nested triger conditions are merged with parent conditions using logical `AND` operator:
 ```
-WHEN [ "$NEW" -eq 1 ]:
-  WHEN [ "$OLD" -eq 0 ]:
+WHEN $THIS = 1:
+  WHEN $OLD = 0:
     ... list of Mutations #1
-  WHEN [ "$OLD" -eq -1 ]:
+  WHEN $OLD = -1:
     ... list of Mutations #2
 ```
 is equal to:
 ```
-WHEN [ "$NEW" -eq 1 ] && [ "$OLD" -eq 0 ]:
+WHEN $THIS = 1 and $OLD = 0:
   ... list of Mutations #1 
-WHEN [ "$NEW" -eq 1 ] && [ "$OLD" -eq -1 ]:
+WHEN $THIS = 1 and $OLD = -1:
   ... list of Mutations #2
 ```
+
 Empty conditions at any level are still merged via `OR`, so:
 ```
-WHEN [ "$NEW" -eq 1 ]:
-  WHEN [ "$OLD" -eq 0 ]:
-  WHEN [ "$OLD" -eq -1 ]:
+WHEN $THIS = 1:
+  WHEN $OLD = 0:
+  WHEN $OLD = -1:
     ... list of Mutations
 ```
 is equal to: 
 ```
-WHEN [ "$NEW" -eq 1 ] && ( [ "$OLD" -eq 0 ] || [ "$OLD" -eq -1 ]):
+WHEN $THIS = 1 and ($OLD = 0 or $OLD = -1):
   ... list of Mutations
 ```
 
 ### Trigger Mutations
 Mutations are defined using HTTP request protocol with separation of request headers and body done via adding whitespace offset to the body lines:
 ```
-WHEN [ "$NEW" -eq 1 ]:
+WHEN $THIS = 1:
   POST https://example.com/example/address
   Content-Type: text/plain
-    echo "$NEW"
+    echo $(@ $THIS)
 ```
 Every mutation definition in a mutation list must have the same whitespace prefix.
 Every body line inside a mutation definition must have the same whitespace prefix.
 
 Mutations must be separated from each other using an empty line:
 ```
-WHEN [ "$NEW" -eq 1 ]:
+WHEN $THIS = 1:
   POST /data/tree/path
-    echo "$NEW" | grep 'name'
+    echo "$(@ $THIS)" | grep 'name'
 
   POST https://example.com/example/address
   Content-Type: text/plain
-    echo "$NEW"
+    echo "$(@ $THIS)"
 
-  DELETE fs://some/file/path/${OLD}
-
-  PUT s3://bucket/path
-    date
+  DELETE fs://some/file/path/$(@ $OLD)
+  PUT fs://some/file/path/$(@ $OLD)
+    attributes: a+r
+      date
 ```
 
 Every HTTP header definition is evaluated as a BashL string using `/bash -c echo <definiiton>`.
@@ -137,8 +160,9 @@ Body definitions are evaluated as bash scripts.
 ### Access Guards
 Access Guards are executed every time a value is read from the Data Tree and defined similarly to triggers but differ from them because they define HTTP responses instead of HTTP requests:
 ```
-WHEN [ -z "${HEADERS[Authorization]}" ]:
+WHEN not($REQUEST/header/Authorization):
   HTTP 401 Unauthorized
+  X-Error-Code: no-auth-header
     echo "You are not authorized to perform this operation."
     echo "(Missing Authorization header)"
 ```
@@ -147,7 +171,7 @@ Access gurads can also be used to transform the response values:
 ```
 WHEN true:
   HTTP 200 OK
-    echo "transformed value: $NEW"
+    echo "transformed value: $THIS"
 ```
 
 #### Redirects
@@ -163,24 +187,11 @@ will redirect all requests to the value located at `/info/status` address.
 The following variables are available to all triggers:
 | name | description |
 | - | - |
-| NEW | contains the value to be written onto the Data Tree |
-| OLD | contains the previous value that will be overridden by this update |
-| METHOD | contains the method used to submit the new value |
-| URL | contains the path to the value to be changed |
-| HEADERS | array of headers submitted with the request |
+| OLD | contains a local tree reference to the old value that will be overwritten |
+| THIS | contains a local tree reference to this node |
+| REQUEST | contains a local tree reference to the information about the originating request |
 | FIELD | contains the first element of the relative path from the trigger to the changed value |
-
-### Querying the Data Tree
-Trigger scripts can query the data tree by invoking the `@` function with the path of requested value as its argument.
-Truthiness of a value can be checked using the `@+` function:
-Examples:
-```
-WHEN [ "$(@ /system/online)" -eq 1 ]:
-  ...
-
-WHEN @+ https://example.com/some/flag:
-  ...
-```
+| NODE | contains a local tree reference to the current node branch |
 
 ## Vm Peering
 VM peering is the mechanism by which two cliffhanger VMs share the same Data Tree.
@@ -262,5 +273,5 @@ The nature of the language allows to push data to external systems directly from
 WHEN true:
   POST https://some-other-system.com/some/path
   Authentication: Bearer "$(@ /external/some-other-system/auth)"
-    echo "$NEW"
+    echo "$THIS"
 ```
