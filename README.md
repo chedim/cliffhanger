@@ -318,3 +318,29 @@ ALWAYS:
   Authentication: Bearer "$(@ /external/some-other-system/auth)"
     echo "$THIS"
 ```
+
+### Subscribing to changes
+An external client or peering VM may subscribe to all changes under a data tree branch by opening a websocket on corresponding to the branch path on the node to which that path belongs.
+If such a request is sent to any different node, it MUST respond with a temporary redirect to the correct node.
+
+# Related Projects and ideas
+
+## JavaScript client library
+It would be nice to have a library that can be
+used to interact with Cliffhanger data tree from
+the browser.
+
+## WebGL renderer
+It would be nice to have a component that allows
+rendering cliffhanger data trees on an html web page.
+
+## VR editor
+It would be nice to implement an editor app
+that would allow working on cliffhanger data
+trees using a browser in a standalone VR headset.
+
+## Cliffhanger nginx manager
+It would be nice to have a service that would
+manage local nginx configuration to provide
+node-targeted paths for external clients that
+can't communicate with the nodes dorectly.
