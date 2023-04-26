@@ -32,7 +32,15 @@ This language was highly influenced by the following technologies and cultural a
 The language is under (yet another) redesign, so no current implementations are available.
 
 # Cliffhanger VM
-Cliffhanger applications are executed using a distributed virtual machine that loads cliffhanger definitions from a file system-like data sources and executes them against a distributed object tree.
+Cliffhanger applications are executed using a distributed virtual machine that loads cliffhanger definitions from a file system-like data sources and executes them against a distributed data tree.
+
+## Cliffhanger modules
+Cliffhanger modules are folders with '.cliff' extension in their name that contain a data tree template stored as a tree of files in which file paths and file names are directly mapped onto VM's data tree with the exception of `.ct` files that define cliffhanger triggers and for which file extensions will be excluded from the path. 
+
+Examples:
+- The value of file `module.cliff/example/readme` will be accessible via path `/example/readme` on the data tree
+- `module.cliff/example/img/logo.png` => `/example/img/logo.png`
+- The value of file `module.cliff/example/feedback.ct` will be parsed as cliffhanger definitions that will be attached to path `/example/feedback`
 
 ## Data Tree 
 Cliffhanger VM maintains a tree of scalar values.
@@ -62,14 +70,14 @@ A reference to the current node's information branch is alvays accessible as `$N
 Any changes under a node information branch MUST be submitted to and processed and replicated by the corresponding node.
 
 ## Trigger Layers
-The VM loads every cliffhanger application into a separate trigger layer. 
+The VM loads every cliffhanger module into a separate trigger layer. 
 
 ## Trigger events
 When a new value is written onto the Data Tree, VM will execute associated with the path of the value triggers from all loaded and active layers.
 Data Tree change events are propagated both horizontally through loaded layers in reverse order of layer loading and vertically through the path of the changed value from the value to the root of the Data Tree.
 
 ## Data Triggers
-Data triggers are the main building blocks of Cliffhanger applications. 
+Data triggers are the main building blocks of Cliffhanger applications.
 A trigger consists of an optional trigger condition and a list of mutations to be performed when the trigger is activated.
 Every time the sub-tree under the address to which a trigger is attached changes, the new sub-tree value is evaluated against the trigger condition. 
 When the trigger condition evaluates to a truthy value, the trigger is activated and its mutations are executed.
@@ -225,6 +233,9 @@ ALWAYS:
   REDIRECT /info/status
 ```
 will redirect all requests to the value located at `/info/status` address.
+
+#### Proxies
+Proxies are Access Guards defined usint the `PROXY` keyword that instructs the virtual machine to serve as an HTTP or memory proxy from the guarded endpoint to the target endpoint.
 
 ### Trigger Variables
 The following variables are available to all triggers:
