@@ -1,5 +1,5 @@
 # cliffhanger (Грань)
-Cliffhanger is a distributed graph operation language for programming microservice swarms.
+Cliffhanger (Грань) is a distributed graph operation language for programming microservice swarms.
 
 ## Fibonacchi example
 File `<project_root>/fibonacchi.ct` that could handle HTTP requests to `/fibonacci/<number>` paths:
