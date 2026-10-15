@@ -1,4 +1,4 @@
-# cliffhanger
+# cliffhanger (Грань)
 Cliffhanger is a distributed graph operation language for programming microservice swarms.
 
 ## Fibonacchi example
