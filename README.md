@@ -30,6 +30,7 @@ This language was highly influenced by the following technologies and cultural a
 
 # Implementation
 The language is under (yet another) redesign, so no current implementations are available.
+
 Update after 3 years of abandonment: apparently, cliffhanger is the language of choice for llm-programmable graphs in my other project, membrane: https://github.com/chedim/membrane
 That project can be considered a fully-featured (and then some!) cliffhanger VM implementation.
 
